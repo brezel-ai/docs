@@ -93,12 +93,12 @@ Estimate a job before creating it. The request body is the same as `POST /api/v1
 ```json
 {
   "estimate": {
-    "actor_start_cost": 1,
-    "places_cost": 5,
+    "actor_start_cost": 0.007,
+    "places_cost": 0.3,
     "contact_details_cost": 0,
     "reviews_cost": 0,
     "images_cost": 0,
-    "total_estimated_cost": 6,
+    "total_estimated_cost": 0.307,
     "estimated_places": 100,
     "estimated_reviews": 0,
     "estimated_images": 0,
@@ -109,6 +109,8 @@ Estimate a job before creating it. The request body is the same as `POST /api/v1
   "sufficient_balance": true
 }
 ```
+
+Amounts in estimate responses follow BrezelScraper's active pricing rules at request time.
 
 ## `GET /api/v1/jobs/user`
 

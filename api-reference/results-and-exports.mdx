@@ -104,15 +104,22 @@ Read the cost breakdown for one job.
   "job_id": "d8d8a24e-cef2-4b02-8396-abc290b6f299",
   "items": [
     {
+      "event_type": "actor_start",
+      "quantity": 1,
+      "cost_credits": "0.007000"
+    },
+    {
       "event_type": "place_scraped",
-      "quantity": 87,
-      "cost_credits": "8.70"
+      "quantity": 400,
+      "cost_credits": "1.200000"
     }
   ],
-  "total_credits": "8.70",
-  "total_rounded": 9
+  "total_credits": "1.207000",
+  "total_rounded": 1
 }
 ```
+
+Cost totals reflect the stored billing events for that job, using the pricing rules that were active when those events were recorded.
 
 ## `POST /api/v1/jobs/costs/batch`
 
@@ -144,13 +151,18 @@ Notes:
       "job_id": "d8d8a24e-cef2-4b02-8396-abc290b6f299",
       "items": [
         {
+          "event_type": "actor_start",
+          "quantity": 1,
+          "cost_credits": "0.007000"
+        },
+        {
           "event_type": "place_scraped",
-          "quantity": 87,
-          "cost_credits": "8.70"
+          "quantity": 400,
+          "cost_credits": "1.200000"
         }
       ],
-      "total_credits": "8.70",
-      "total_rounded": 9
+      "total_credits": "1.207000",
+      "total_rounded": 1
     }
   }
 }
