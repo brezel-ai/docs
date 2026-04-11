@@ -1,0 +1,120 @@
+---
+title: "Credits and billing"
+description: "Read balances, inspect billing history, create checkout sessions, and reconcile completed credit purchases."
+---
+
+## `GET /api/v1/credits/balance`
+
+Return the authenticated user's current credit balance.
+
+### Example response
+
+```json
+{
+  "user_id": "user_123",
+  "credit_balance": "25",
+  "total_credits_purchased": "100"
+}
+```
+
+## `GET /api/v1/credits/history`
+
+Return paginated credit transaction history.
+
+### Query parameters
+
+| Parameter | Type | Default | Notes |
+| --- | --- | --- | --- |
+| `limit` | integer | `50` | Max `100` |
+| `offset` | integer | `0` | Must be non-negative |
+| `type` | string | empty | Filter by transaction type |
+
+Common transaction types:
+
+- `purchase`
+- `consumption`
+- `bonus`
+- `refund`
+- `adjustment`
+
+In some edge cases you may also see `refund_deficit` or `deficit_paydown` in the response history.
+
+### Example response
+
+```json
+{
+  "transactions": [
+    {
+      "id": "018efdf7-7fe1-7c42-b4e2-123456789abc",
+      "type": "purchase",
+      "amount": "25",
+      "balance_before": "0",
+      "balance_after": "25",
+      "description": "Stripe checkout session",
+      "reference_id": "cs_test_123",
+      "reference_type": "stripe_checkout_session",
+      "created_at": "2026-04-10T09:00:00Z"
+    }
+  ],
+  "total": 1,
+  "limit": 50,
+  "offset": 0,
+  "has_more": false
+}
+```
+
+## `POST /api/v1/credits/checkout-session`
+
+Create a Stripe Checkout session to buy credits.
+
+### Request body
+
+```json
+{
+  "credits": "25",
+  "currency": "USD"
+}
+```
+
+Rules:
+
+- `credits` must be a whole positive integer
+- Maximum `credits` per checkout session is `10000`
+- `currency` currently supports `USD` only
+
+### Success response
+
+```json
+{
+  "session_id": "cs_test_123",
+  "url": "https://checkout.stripe.com/..."
+}
+```
+
+Redirect the user to `url` to complete the purchase.
+
+## `POST /api/v1/credits/reconcile`
+
+Confirm a completed checkout session against the authenticated user.
+
+### Request body
+
+```json
+{
+  "session_id": "cs_test_123"
+}
+```
+
+### Success response
+
+```json
+{
+  "status": "ok"
+}
+```
+
+Use this after the user returns from Stripe if you want to refresh credits immediately instead of waiting for normal background settlement.
+
+## Internal billing webhook
+
+The backend also exposes `POST /api/v1/billing/webhook` for Stripe. That endpoint is internal to BrezelScraper's billing flow and is not part of the customer integration surface.

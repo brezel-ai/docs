@@ -1,0 +1,199 @@
+---
+title: "Jobs"
+description: "Estimate, create, list, inspect, cancel, and delete BrezelScraper jobs."
+---
+
+<Note>
+  Live job objects currently use mixed JSON key casing. Expect legacy top-level keys such as `ID`, `Name`, `Status`, `Data`, and `Date`, plus tagged keys such as `created_at`, `source`, `result_count`, and `total_cost`.
+
+  Request payloads still send `max_time` in seconds. In job responses, `Data.max_time` is currently serialized as a Go duration integer.
+</Note>
+
+## Job statuses
+
+| Status | Meaning |
+| --- | --- |
+| `pending` | The job has been accepted and is waiting to run |
+| `working` | The scraper is actively collecting data |
+| `ok` | The job finished successfully |
+| `failed` | The job did not complete successfully |
+| `cancelled` | The job was cancelled |
+| `aborting` | Cancellation is in progress |
+
+## `POST /api/v1/jobs`
+
+Create a new scraping job.
+
+### Request body
+
+| Field | Type | Required | Default | Notes |
+| --- | --- | --- | --- | --- |
+| `name` | string | Yes | none | 1 to 200 characters |
+| `keywords` | string[] | Yes | none | 1 to 5 keywords, each 1 to 200 characters |
+| `lang` | string | Yes | none | 2-character language code |
+| `depth` | integer | No | `5` | Min `1`, max `20` |
+| `email` | boolean | No | `false` | Enables email scraping from business websites |
+| `images_max` | integer | No | `0` | Total image cap for the whole job, max `40000` |
+| `reviews_max` | integer | No | `0` | Review cap per place, max `500` |
+| `max_results` | integer | No | `50` | Place cap for the whole job, max `500` |
+| `lat` | string | No | empty | Latitude for geo-targeted runs |
+| `lon` | string | No | empty | Longitude for geo-targeted runs |
+| `zoom` | integer | No | `0` | Map zoom, max `21` |
+| `radius` | integer | No | `0` | Meters, max `50000` |
+| `max_time` | integer | No | `1800` | Seconds, max `3600` |
+| `fast_mode` | boolean | No | `false` | Faster, lighter data collection |
+| `proxies` | string[] | No | empty | Up to 100 custom proxy URLs |
+
+There is no unlimited sentinel for cap fields. If you want the maximum allowed value, send the maximum explicitly.
+
+### Supported `lang` values
+
+`ar`, `bg`, `cs`, `da`, `de`, `el`, `en`, `es`, `et`, `fi`, `fr`, `he`, `hr`, `hu`, `id`, `it`, `ja`, `ko`, `lt`, `lv`, `ms`, `nl`, `no`, `pl`, `pt`, `ro`, `ru`, `sk`, `sl`, `sv`, `th`, `tr`, `uk`, `vi`, `zh`
+
+### Example request
+
+```bash
+curl -X POST https://api.brezel.ai/api/v1/jobs \
+  -H "Authorization: Bearer bscraper_your_key_here" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Berlin cafes",
+    "keywords": ["cafes in berlin"],
+    "lang": "en",
+    "depth": 5,
+    "max_results": 100,
+    "reviews_max": 0,
+    "images_max": 0,
+    "max_time": 1800
+  }'
+```
+
+### Success response
+
+```json
+{
+  "id": "d8d8a24e-cef2-4b02-8396-abc290b6f299"
+}
+```
+
+### Common failure modes
+
+- `400 Bad Request` for validation failures
+- `402 Payment Required` if your credit balance is too low
+- `409 Conflict` if you reuse an idempotency key incorrectly
+- `422 Unprocessable Entity` for invalid JSON
+- `429 Too Many Requests` if you hit the concurrent job limit, with `Retry-After: 60`
+
+## `POST /api/v1/jobs/estimate`
+
+Estimate a job before creating it. The request body is the same as `POST /api/v1/jobs`.
+
+### Example response
+
+```json
+{
+  "estimate": {
+    "actor_start_cost": 1,
+    "places_cost": 5,
+    "contact_details_cost": 0,
+    "reviews_cost": 0,
+    "images_cost": 0,
+    "total_estimated_cost": 6,
+    "estimated_places": 100,
+    "estimated_reviews": 0,
+    "estimated_images": 0,
+    "includes_email_scrape": false,
+    "note": "Estimate based on current pricing rules"
+  },
+  "current_credit_balance": 25,
+  "sufficient_balance": true
+}
+```
+
+## `GET /api/v1/jobs/user`
+
+List your jobs with pagination and sorting.
+
+### Query parameters
+
+| Parameter | Type | Default | Notes |
+| --- | --- | --- | --- |
+| `page` | integer | `1` | Must be positive |
+| `limit` | integer | `10` | Max `100` |
+| `sort` | string | `created_at` | Allowed: `created_at`, `name`, `status`, `updated_at` |
+| `order` | string | `desc` | `asc` or `desc` |
+| `search` | string | empty | Max 200 bytes |
+
+### Example response
+
+```json
+{
+  "jobs": [
+    {
+      "ID": "d8d8a24e-cef2-4b02-8396-abc290b6f299",
+      "UserID": "user_123",
+      "Name": "Berlin cafes",
+      "Status": "ok",
+      "Data": {
+        "keywords": ["cafes in berlin"],
+        "lang": "en",
+        "depth": 5,
+        "email": false,
+        "images_max": 0,
+        "reviews_max": 0,
+        "max_results": 100,
+        "max_time": 1800000000000,
+        "fast_mode": false
+      },
+      "Date": "2026-04-10T09:00:00Z",
+      "created_at": "2026-04-10T09:00:00Z",
+      "updated_at": "2026-04-10T09:05:00Z",
+      "source": "api",
+      "result_count": 87,
+      "total_cost": "12.50"
+    }
+  ],
+  "total": 1,
+  "page": 1,
+  "limit": 10,
+  "has_next": false,
+  "has_prev": false
+}
+```
+
+## `GET /api/v1/jobs`
+
+Return all jobs for the authenticated user as a single array.
+
+Use this endpoint only when you explicitly want the unpaginated list. For most API clients, `GET /api/v1/jobs/user` is the better default.
+
+## `GET /api/v1/jobs/{id}`
+
+Fetch one job by UUID.
+
+- `200 OK` returns the same mixed-case job object shape shown above
+- `404 Not Found` if the job does not belong to you or does not exist
+- `422 Unprocessable Entity` if `id` is not a valid UUID
+
+## `POST /api/v1/jobs/{id}/cancel`
+
+Cancel a pending or active job.
+
+### Response
+
+```json
+{
+  "message": "Job cancellation initiated",
+  "job_id": "d8d8a24e-cef2-4b02-8396-abc290b6f299"
+}
+```
+
+## `DELETE /api/v1/jobs/{id}`
+
+Delete a job you own.
+
+Current behavior:
+
+- Success response is `200 OK`
+- The response body is empty
+- Invalid UUID values return `422 Unprocessable Entity`

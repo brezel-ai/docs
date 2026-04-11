@@ -1,35 +1,41 @@
 ---
-title: 'Code blocks'
-description: 'Display inline code and code blocks'
-icon: 'code'
+title: "API examples and code blocks"
+description: "Contributor guidance for writing reliable BrezelScraper examples."
+icon: "code"
 ---
 
-## Inline code
+<Note>
+  This page is for docs contributors. It is not part of the customer product guide.
+</Note>
 
-To denote a `word` or `phrase` as code, enclose it in backticks (`).
+## Default example formats
 
+- Use `bash` for request examples
+- Use `json` for request and response payloads
+- Use inline code for endpoints, headers, file names, and payload fields
+
+## API example rules
+
+- Show the real endpoint path and the real required headers
+- Use lowercase request field names such as `name`, `keywords`, and `lang`
+- Keep the first example minimal, then add optional fields only when they matter
+- If the live response has legacy quirks, document them instead of normalizing them away
+
+## Important live-contract quirks
+
+- Job objects currently return mixed-case top-level keys such as `ID`, `Name`, and `Data`
+- `Data.max_time` in job responses is serialized as a Go duration integer, not the original seconds input
+- API key examples should use the `bscraper_` prefix
+
+## Example request pattern
+
+```bash
+curl -X POST https://api.brezel.ai/api/v1/jobs \
+  -H "Authorization: Bearer bscraper_your_key_here" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Berlin cafes",
+    "keywords": ["cafes in berlin"],
+    "lang": "en"
+  }'
 ```
-To denote a `word` or `phrase` as code, enclose it in backticks (`).
-```
-
-## Code blocks
-
-Use [fenced code blocks](https://www.markdownguide.org/extended-syntax/#fenced-code-blocks) by enclosing code in three backticks and follow the leading ticks with the programming language of your snippet to get syntax highlighting. Optionally, you can also write the name of your code after the programming language.
-
-```java HelloWorld.java
-class HelloWorld {
-    public static void main(String[] args) {
-        System.out.println("Hello, World!");
-    }
-}
-```
-
-````md
-```java HelloWorld.java
-class HelloWorld {
-    public static void main(String[] args) {
-        System.out.println("Hello, World!");
-    }
-}
-```
-````

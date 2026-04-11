@@ -1,0 +1,108 @@
+---
+title: "Support and utility endpoints"
+description: "Submit support requests and read dashboard, version, and health metadata."
+---
+
+## `POST /api/v1/support`
+
+Submit a support request from an authenticated account.
+
+This endpoint is rate-limited to roughly one request per minute, with a small burst for retries.
+
+### Request body
+
+```json
+{
+  "category": "billing",
+  "subject": "Question about a failed job",
+  "message": "My latest job failed and I need help understanding the billing result."
+}
+```
+
+Rules:
+
+- `category` must be one of `bug`, `feature`, `billing`, `account`, `other`
+- `subject` is optional, max 200 characters
+- `message` is required, min 10 and max 5000 characters
+
+### Success response
+
+```json
+{
+  "success": true
+}
+```
+
+## `GET /api/v1/dashboard`
+
+Return the compact dashboard summary used by the web app.
+
+### Query parameters
+
+| Parameter | Type | Default | Notes |
+| --- | --- | --- | --- |
+| `limit` | integer | `5` | Max `20` recent jobs |
+
+### Example response
+
+```json
+{
+  "kpi": {
+    "jobs_today": 2,
+    "places_scraped_total": 187,
+    "active_jobs": 1
+  },
+  "recent_jobs": [
+    {
+      "id": "d8d8a24e-cef2-4b02-8396-abc290b6f299",
+      "name": "Berlin cafes",
+      "status": "working",
+      "created_at": "2026-04-10T09:00:00Z",
+      "updated_at": "2026-04-10T09:03:00Z",
+      "source": "api",
+      "result_count": 42,
+      "total_cost": "4.20"
+    }
+  ]
+}
+```
+
+## `GET /api/v1/version`
+
+## `GET /api/version`
+
+Both routes return the same build metadata payload.
+
+### Example response
+
+```json
+{
+  "version": "1.2.3",
+  "build_date": "2026-04-10T08:30:00Z",
+  "git_commit_short": "abc1234",
+  "environment": "production"
+}
+```
+
+## `GET /health`
+
+Return a lightweight service and database health check.
+
+### Healthy response
+
+```json
+{
+  "status": "ok",
+  "db": "ok",
+  "version": "abc1234"
+}
+```
+
+### Unhealthy response
+
+```json
+{
+  "status": "unhealthy",
+  "db": "unreachable"
+}
+```

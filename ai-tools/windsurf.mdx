@@ -1,39 +1,29 @@
 ---
 title: "Windsurf setup"
-description: "Configure Windsurf for your documentation workflow"
+description: "Contributor workflow for using Windsurf on the BrezelScraper docs repo."
 icon: "water"
 ---
 
-Set up Windsurf's Cascade AI assistant to help you write and maintain your Mintlify documentation.
+<Note>
+  This page is for docs contributors. It is not part of the customer product guide.
+</Note>
 
-## Prerequisites
+Use Windsurf when you want AI-assisted editing with fast access to the docs and application code together.
 
-- Windsurf editor installed
+## Recommended setup
 
-## Setup
+- Open the docs repo root first
+- Keep these source-of-truth codebases available:
+  - `/Users/yasseen/Documents/brezel.ai/BrezelScraper/brezelscraper-backend`
+  - `/Users/yasseen/Documents/brezel.ai/BrezelScraper/brezelscraper-frontend`
+- Install the Mintlify skill if you want component help:
 
-<Steps>
-<Step title="Open your docs directory in Windsurf">
-  Open the root of your documentation repository where `docs.json` is located.
-</Step>
+```bash
+npx skills add https://mintlify.com/docs
+```
 
-<Step title="Install the Mintlify skill">
-  In the integrated terminal, run:
+## Working rules
 
-  ```bash
-  npx skills add https://mintlify.com/docs
-  ```
-
-  This gives Windsurf Mintlify's component reference, writing standards,
-  and workflow guidance.
-</Step>
-
-<Step title="Customize project instructions">
-  Edit `AGENTS.md` in your project root to add project-specific terminology,
-  style preferences, and content boundaries.
-</Step>
-
-<Step title="Start writing with Cascade">
-  Open a file and use Cascade to draft and edit documentation.
-</Step>
-</Steps>
+- Treat backend handlers and frontend flows as authoritative
+- Keep prompts specific to one workflow or endpoint at a time
+- Review final wording for BrezelScraper terminology before merge

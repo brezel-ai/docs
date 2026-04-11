@@ -1,87 +1,32 @@
 ---
-title: 'Navigation'
-description: 'The navigation field in docs.json defines the pages that go in the navigation menu'
-icon: 'map'
+title: "Navigation maintenance"
+description: "Contributor guidance for keeping the BrezelScraper docs navigation clean and task-focused."
+icon: "map"
 ---
 
-The navigation menu is the list of links on every website.
+<Note>
+  This page is for docs contributors. It is not part of the customer product guide.
+</Note>
 
-You will likely update `docs.json` every time you add a new page. Pages do not show up automatically.
+## Core rule
 
-## Navigation syntax
+Every page that should appear in the sidebar must be added to `docs.json`.
 
-Our navigation syntax is recursive which means you can make nested navigation groups. You don't need to include `.mdx` in page names.
+## Current information architecture
 
-<CodeGroup>
+- `Guides` is for task-based customer workflows
+- `API reference` is for endpoint-by-endpoint machine-facing docs
+- Contributor pages can stay hidden, but they still need to be project-specific if they remain in the repo
 
-```json Regular Navigation
-"navigation": {
-  "tabs": [
-    {
-      "tab": "Docs",
-      "groups": [
-        {
-          "group": "Getting Started",
-          "pages": ["quickstart"]
-        }
-      ]
-    }
-  ]
-}
-```
+## When to change navigation
 
-```json Nested Navigation
-"navigation": {
-  "tabs": [
-    {
-      "tab": "Docs",
-      "groups": [
-        {
-          "group": "Getting Started",
-          "pages": [
-            "quickstart",
-            {
-              "group": "Nested Reference Pages",
-              "pages": ["nested-reference-page"]
-            }
-          ]
-        }
-      ]
-    }
-  ]
-}
-```
+- Add a page when it is a primary user task or a stable reference entry point
+- Group pages by the user's goal, not by internal team ownership
+- Remove or rewrite placeholder pages instead of leaving starter content hidden
 
-</CodeGroup>
+## Before you merge a nav change
 
-## Folders
-
-Simply put your MDX files in folders and update the paths in `docs.json`.
-
-For example, to have a page at `https://yoursite.com/your-folder/your-page` you would make a folder called `your-folder` containing an MDX file called `your-page.mdx`.
-
-<Warning>
-
-You cannot use `api` for the name of a folder unless you nest it inside another folder. Mintlify uses Next.js which reserves the top-level `api` folder for internal server calls. A folder name such as `api-reference` would be accepted.
-
-</Warning>
-
-```json Navigation With Folder
-"navigation": {
-  "tabs": [
-    {
-      "tab": "Docs",
-      "groups": [
-        {
-          "group": "Group Name",
-          "pages": ["your-folder/your-page"]
-        }
-      ]
-    }
-  ]
-}
-```
-
-## Hidden pages
-
-MDX files not included in `docs.json` will not show up in the sidebar but are accessible through the search bar and by linking directly to them.
+- Check `docs.json` for valid JSON
+- Preview the sidebar locally
+- Verify page ordering makes sense for a new customer
+- Verify renamed or removed pages do not leave dead links behind

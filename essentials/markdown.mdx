@@ -1,88 +1,38 @@
 ---
-title: 'Markdown syntax'
-description: 'Text, title, and styling in standard markdown'
-icon: 'text-size'
+title: "Writing standards"
+description: "Contributor guidance for BrezelScraper doc voice, structure, and terminology."
+icon: "text-size"
 ---
 
-## Titles
+<Note>
+  This page is for docs contributors. It is not part of the customer product guide.
+</Note>
 
-Best used for section headers.
+## Voice and structure
 
-```md
-## Titles
-```
+- Lead with the user task, not the product feature
+- Use active voice and second person
+- Keep sentences short and concrete
+- Use sentence case for headings
+- Bold UI labels such as **Jobs**, **Credits**, and **Integrations**
+- Use code formatting for commands, paths, endpoints, headers, and payload fields
 
-### Subtitles
+## Product terminology
 
-Best used for subsection headers.
+- Use `job` for a scraping run
+- Use `results` for extracted business data
+- Use `credits` for balance and usage
+- Use `dashboard` for the authenticated app
+- Use `integrations` for Google Sheets, API keys, and webhooks
 
-```md
-### Subtitles
-```
+## What to explain
 
-<Tip>
+- Explain how a setting changes cost, runtime, or result volume when that tradeoff matters
+- Start with the dashboard workflow before the API workflow when both exist
+- Show the happy path first, then call out common failure modes
 
-Each **title** and **subtitle** creates an anchor and also shows up on the table of contents on the right.
+## What to avoid
 
-</Tip>
-
-## Text formatting
-
-We support most markdown formatting. Simply add `**`, `_`, or `~` around text to format it.
-
-| Style         | How to write it   | Result          |
-| ------------- | ----------------- | --------------- |
-| Bold          | `**bold**`        | **bold**        |
-| Italic        | `_italic_`        | _italic_        |
-| Strikethrough | `~strikethrough~` | ~strikethrough~ |
-
-You can combine these. For example, write `**_bold and italic_**` to get **_bold and italic_** text.
-
-You need to use HTML to write superscript and subscript text. That is, add `<sup>` or `<sub>` around your text.
-
-| Text Size   | How to write it          | Result                 |
-| ----------- | ------------------------ | ---------------------- |
-| Superscript | `<sup>superscript</sup>` | <sup>superscript</sup> |
-| Subscript   | `<sub>subscript</sub>`   | <sub>subscript</sub>   |
-
-## Linking to pages
-
-You can add a link by wrapping text in `[]()`. You would write `[link to google](https://google.com)` to [link to google](https://google.com).
-
-Links to pages in your docs need to be root-relative. Basically, you should include the entire folder path. For example, `[link to text](/writing-content/text)` links to the page "Text" in our components section.
-
-Relative links like `[link to text](../text)` will open slower because we cannot optimize them as easily.
-
-## Blockquotes
-
-### Singleline
-
-To create a blockquote, add a `>` in front of a paragraph.
-
-> Dorothy followed her through many of the beautiful rooms in her castle.
-
-```md
-> Dorothy followed her through many of the beautiful rooms in her castle.
-```
-
-### Multiline
-
-> Dorothy followed her through many of the beautiful rooms in her castle.
->
-> The Witch bade her clean the pots and kettles and sweep the floor and keep the fire fed with wood.
-
-```md
-> Dorothy followed her through many of the beautiful rooms in her castle.
->
-> The Witch bade her clean the pots and kettles and sweep the floor and keep the fire fed with wood.
-```
-
-### LaTeX
-
-Mintlify supports [LaTeX](https://www.latex-project.org) through the Latex component.
-
-<Latex>8 x (vk x H1 - H2) = (0,1)</Latex>
-
-```md
-<Latex>8 x (vk x H1 - H2) = (0,1)</Latex>
-```
+- Do not promise future features or unpublished contracts
+- Do not copy stale OpenAPI or starter content without verifying the code
+- Do not use vague synonyms when a product term already exists

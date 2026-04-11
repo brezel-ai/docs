@@ -1,43 +1,29 @@
 ---
 title: "Claude Code setup"
-description: "Configure Claude Code for your documentation workflow"
+description: "Contributor workflow for using Claude Code on the BrezelScraper docs repo."
 icon: "asterisk"
 ---
 
-Set up Claude Code to help you write and maintain your Mintlify documentation.
+<Note>
+  This page is for docs contributors. It is not part of the customer product guide.
+</Note>
 
-## Prerequisites
+Use Claude Code when you want help drafting or refactoring docs, but keep the application code as the source of truth.
 
-- Active Claude subscription (Pro, Max, or API access)
+## Recommended setup
 
-## Setup
+- Open the docs repo root so `AGENTS.md` is loaded
+- Keep the backend and frontend paths available for verification:
+  - `/Users/yasseen/Documents/brezel.ai/BrezelScraper/brezelscraper-backend`
+  - `/Users/yasseen/Documents/brezel.ai/BrezelScraper/brezelscraper-frontend`
+- Install the Mintlify skill if you want component help:
 
-<Steps>
-<Step title="Install Claude Code">
-  ```bash
-  npm install -g @anthropic-ai/claude-code
-  ```
-</Step>
+```bash
+npx skills add https://mintlify.com/docs
+```
 
-<Step title="Install the Mintlify skill">
-  In your docs directory, run:
+## Working rules
 
-  ```bash
-  npx skills add https://mintlify.com/docs
-  ```
-
-  This gives Claude Code Mintlify's component reference, writing standards,
-  and workflow guidance.
-</Step>
-
-<Step title="Customize project instructions">
-  Edit `AGENTS.md` in your project root to add project-specific terminology,
-  style preferences, and content boundaries.
-</Step>
-
-<Step title="Start writing with Claude Code">
-  ```bash
-  claude
-  ```
-</Step>
-</Steps>
+- Ask Claude Code to verify live behavior in backend handlers before rewriting API pages
+- Prefer concrete tasks such as "document the results pagination response" over vague prompts
+- Review terminology against `AGENTS.md` before accepting broad rewrites

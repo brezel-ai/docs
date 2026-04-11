@@ -1,0 +1,99 @@
+---
+title: "Manage jobs and results"
+description: "Track job status, review result tabs, download CSVs, and export completed jobs."
+---
+
+Once a job is running, the job detail page becomes the main place to monitor progress and collect data.
+
+## Understand job statuses
+
+| Status | What it means | What you can do |
+| --- | --- | --- |
+| `pending` | The job was created and is waiting to start | Wait for processing to begin |
+| `working` | The scraper is actively collecting data | Monitor progress and leave the page if needed |
+| `ok` | The job completed successfully | Open result tabs, download CSV, or export |
+| `failed` | The job did not finish successfully | Review the failure reason and retry with a smaller or simpler run |
+| `aborting` | Cancellation has been requested | Wait for the job to stop |
+| `cancelled` | The run was stopped before completion | Duplicate the setup in a new job if you still need the data |
+
+## What you can do from the jobs list
+
+From **Jobs**, you can:
+
+- Search your existing jobs
+- Open a job detail page
+- Cancel an active job
+- Delete a job you no longer need
+- Download completed results
+- Export completed results to Google Sheets
+
+## Review the job detail page
+
+The job detail page is organized around the result set and the final cost.
+
+Common tabs include:
+
+- **Overview** for the summary view
+- **Contact** for phone, website, and contact-related fields
+- **Ratings** for rating and review-count views
+- **Reviews** for review text when review scraping was enabled
+- **Costs** for the final cost breakdown
+
+If a job is still running, some tabs stay empty until the run finishes.
+
+## Download your CSV
+
+When a job reaches `ok`, you can download a CSV version of the dataset.
+
+Use CSV download when you want to:
+
+- Open the file in spreadsheets locally
+- Import it into your own tooling
+- Keep an archive outside the dashboard
+
+## Export to Google Sheets
+
+BrezelScraper can send a completed job directly to Google Sheets.
+
+Before you export:
+
+1. Open **Integrations** in the dashboard
+2. Connect your Google account
+3. Return to the completed job
+4. Choose **Export to Google Sheets**
+
+You can set the sheet name before the export starts.
+
+## Cancel vs delete
+
+These actions do different things:
+
+- **Cancel** stops an active job that is already running or queued
+- **Delete** removes the job entry from your dashboard
+
+Use **Cancel** when you want to stop more usage. Use **Delete** when you no longer need to keep the job in your account view.
+
+## Why results might not appear
+
+### The job is still running
+
+Wait until the status changes to `ok`. Result tabs populate after successful completion.
+
+### The job failed
+
+Failed jobs do not behave like completed jobs. Review the error message, reduce complexity, and launch a new run.
+
+### The job was cancelled
+
+Cancelled jobs stop before the full dataset is ready. Re-run the search if you still need the output.
+
+## Good habits for larger workloads
+
+- Split broad searches into multiple smaller jobs
+- Use naming conventions so you can find runs later
+- Download or export completed jobs you plan to share
+- Review costs on finished jobs before scaling the same setup
+
+## Next step
+
+If you need to top up before the next run, continue with [Credits and billing](/guides/credits-billing).

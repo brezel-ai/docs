@@ -1,80 +1,112 @@
 ---
-title: "Quickstart"
-description: "Start building awesome documentation in minutes"
+title: "Create your first scraping job"
+description: "Launch your first BrezelScraper job and understand the main settings before you scale up."
 ---
 
-## Get started in three steps
+This guide walks you through the fastest safe path to your first usable result set.
 
-Get your documentation site running locally and make your first customization.
+<Tip>
+  Start with one keyword, a moderate depth, and enrichments turned off. You can scale the next run once you see the shape of your results and cost estimate.
+</Tip>
 
-### Step 1: Set up your local environment
+## Before you start
 
-<AccordionGroup>
-  <Accordion icon="copy" title="Clone your docs locally">
-    During the onboarding process, you created a GitHub repository with your docs content if you didn't already have one. You can find a link to this repository in your [dashboard](https://dashboard.mintlify.com).
-    
-    To clone the repository locally so that you can make and preview changes to your docs, follow the [Cloning a repository](https://docs.github.com/en/repositories/creating-and-managing-repositories/cloning-a-repository) guide in the GitHub docs.
-  </Accordion>
-  <Accordion icon="rectangle-terminal" title="Start the preview server">
-    1. Install the Mintlify CLI: `npm i -g mint`
-    2. Navigate to your docs directory and run: `mint dev`
-    3. Open `http://localhost:3000` to see your docs live!
-    
-    <Tip>Your preview updates automatically as you edit files.</Tip>
-  </Accordion>
-</AccordionGroup>
+Make sure you can:
 
-### Step 2: Deploy your changes
+- Sign in to your account
+- Open the dashboard at `https://brezel.ai/dashboard`
+- Access the **Jobs** area
+- See available starter or purchased credits in **Credits**
 
-<AccordionGroup>
-  <Accordion icon="github" title="Install our GitHub app">
-    Install the Mintlify GitHub app from your [dashboard](https://dashboard.mintlify.com/settings/organization/github-app).
-    
-    Our GitHub app automatically deploys your changes to your docs site, so you don't need to manage deployments yourself.
-</Accordion>
-<Accordion icon="palette" title="Update your site name and colors">
-    For a first change, let's update the name and colors of your docs site.
+## Launch your first job
 
-    1. Open `docs.json` in your editor.
-    2. Change the `"name"` field to your project name.
-    3. Update the `"colors"` to match your brand.
-    4. Save and see your changes instantly at `http://localhost:3000`.
+<Steps>
+  <Step title="Open the new job flow">
+    In the dashboard, go to **Jobs** and click **New Job**.
+  </Step>
+  <Step title="Add your search terms">
+    Enter one or more keywords that describe the businesses you want to find.
 
-    <Tip>Try changing the primary color to see an immediate difference!</Tip>
-  </Accordion>
-</AccordionGroup>
+    BrezelScraper accepts up to 5 search terms per job. Keep your first run narrow so you can verify quality before expanding to larger batches.
+  </Step>
+  <Step title="Choose the main search settings">
+    Set the **Language** and **Depth** for the run.
 
-### Step 3: Go live
+    - Lower depth is faster and cheaper.
+    - Higher depth explores more places and usually increases runtime and spend.
+    - If you set **Max results**, you can cap how many places the job returns.
+  </Step>
+  <Step title="Turn on enrichments only if you need them">
+    You can add optional enrichments before launch.
 
-<Accordion icon="rocket" title="Publish your docs">
-  1. Commit and push your changes.
-  2. Your docs will update and be live in moments!
-</Accordion>
+    - **Extract emails** checks business websites for contact emails.
+    - **Collect photos** increases media coverage for the job.
+    - **Scrape reviews** pulls review text and rating data.
 
-## Next steps
+    Each enrichment can increase cost and runtime.
+  </Step>
+  <Step title="Review the estimate and start the job">
+    BrezelScraper shows a pre-run estimate before you start.
 
-Now that you have your docs running, explore these key features:
+    If your balance is too low, the dashboard will block launch and send you to **Credits** to top up first.
+  </Step>
+  <Step title="Open the job details page">
+    After the job is created, BrezelScraper redirects you to the job detail page where you can monitor status and review results.
+  </Step>
+</Steps>
 
-<CardGroup cols={2}>
+## What the main settings mean
 
-<Card title="Write Content" icon="pen-to-square" href="/essentials/markdown">
-  Learn MDX syntax and start writing your documentation.
-</Card>
+| Setting | What it controls | When to keep it small |
+| --- | --- | --- |
+| Search terms | The business queries sent to Google Maps | When you are testing a new market or niche |
+| Language | The Google Maps language context for the job | When you only need one locale |
+| Depth | How far the scraper explores search results | When you want a faster first pass |
+| Max results | A cap on the number of places returned | When you need a predictable first dataset |
+| Reviews | Review text and rating enrichment | When basic place data is enough |
+| Photos | Image collection across the job | When you do not need media assets yet |
+| Max time | The wall-clock time budget for the job | When you want faster feedback |
 
-<Card title="Customize style" icon="palette" href="/essentials/settings">
-  Make your docs match your brand perfectly.
-</Card>
+## What you will get back
 
-<Card title="Add code examples" icon="square-code" href="/essentials/code">
-  Include syntax-highlighted code blocks.
-</Card>
+A completed job can include:
 
-<Card title="API documentation" icon="code" href="/api-reference/introduction">
-  Auto-generate API docs from OpenAPI specs.
-</Card>
+- Business name
+- Address and full address
+- Phone number
+- Website
+- Categories
+- Rating and review count
+- Coordinates
+- Opening hours
+- Extra enrichment fields if you enabled them
 
-</CardGroup>
+## Common first-run issues
 
-<Note>
-  **Need help?** See our [full documentation](https://mintlify.com/docs) or join our [community](https://mintlify.com/community).
-</Note>
+### The estimate says I do not have enough credits
+
+Go to **Credits**, add balance, and then retry the job with the same settings or a smaller configuration.
+
+### My job is taking longer than expected
+
+This usually happens when you use:
+
+- Multiple keywords
+- Higher depth
+- Review scraping
+- Image collection
+- Email enrichment
+
+For the first run, lower the depth or remove enrichments.
+
+### I got fewer places than I expected
+
+Google Maps result volume depends on the keyword, area, and language context. Try one of these:
+
+- Broaden the keyword
+- Increase depth
+- Run multiple smaller jobs for different areas or terms
+
+## Next step
+
+Once your first job finishes, continue with [Manage jobs and results](/guides/jobs-results).

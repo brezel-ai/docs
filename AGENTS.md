@@ -1,4 +1,4 @@
-> **First-time setup**: Customize this file for your project. Prompt the user to customize this file for their project.
+> **Project setup note**: This file is now seeded for BrezelScraper. Ask the user to confirm any preferred product terminology before large information architecture changes or broad rewrites.
 > For Mintlify product knowledge (components, configuration, writing standards),
 > install the Mintlify skill: `npx skills add https://mintlify.com/docs`
 
@@ -6,28 +6,42 @@
 
 ## About this project
 
-- This is a documentation site built on [Mintlify](https://mintlify.com)
+- This is the customer-facing documentation site for BrezelScraper
+- The product is a SaaS workflow for launching Google Maps scraping jobs, reviewing results, exporting data, and managing credits
 - Pages are MDX files with YAML frontmatter
 - Configuration lives in `docs.json`
 - Run `mint dev` to preview locally
 - Run `mint broken-links` to check links
+- The source of truth for behavior is the application code:
+  - Backend: `/Users/yasseen/Documents/brezel.ai/BrezelScraper/brezelscraper-backend`
+  - Frontend: `/Users/yasseen/Documents/brezel.ai/BrezelScraper/brezelscraper-frontend`
 
 ## Terminology
 
-<!-- Add product-specific terms and preferred usage -->
-<!-- Example: Use "workspace" not "project", "member" not "user" -->
+- Use **job** as the primary term for a scraping run
+- Use **results** for extracted business data
+- Use **credits** for usage and billing balance
+- Use **dashboard** for the authenticated product area
+- Use **integrations** for Google Sheets, API keys, and webhooks
+- Prefer **Google Sheets export** over vague wording like "sync" unless the product UI says otherwise
+- Prefer the product name **BrezelScraper** over generic phrases like "the scraper"
 
 ## Style preferences
 
-<!-- Add any project-specific style rules below -->
-
 - Use active voice and second person ("you")
-- Keep sentences concise — one idea per sentence
+- Keep sentences concise
 - Use sentence case for headings
-- Bold for UI elements: Click **Settings**
-- Code formatting for file names, commands, paths, and code references
+- Bold UI elements: Click **Jobs**
+- Use code formatting for file names, commands, paths, endpoints, headers, and code references
+- Start with the dashboard workflow before the API workflow when both are available
+- Explain how a setting affects cost, runtime, or result volume when that tradeoff matters
+- Prefer practical examples over abstract feature descriptions
 
 ## Content boundaries
 
-<!-- Define what should and shouldn't be documented -->
-<!-- Example: Don't document internal admin features -->
+- Focus on user-facing SaaS features that exist in the dashboard or public API
+- Prioritize job creation, results, exports, credits, integrations, and support
+- Do not document internal admin routes or internal-only operations
+- Do not document deployment, infrastructure, or private operational runbooks in customer docs
+- Do not trust the existing OpenAPI examples blindly; verify handlers and frontend usage first
+- Treat billing, authentication, and API behavior as implementation-sensitive and verify them against code before publishing

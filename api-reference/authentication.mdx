@@ -1,0 +1,101 @@
+---
+title: "Authentication"
+description: "Authenticate BrezelScraper API requests with API keys and use idempotency for safe job-creation retries."
+---
+
+Use API keys for server-to-server access. Use your dashboard session for browser-driven flows.
+
+## Create an API key
+
+Create API keys in the dashboard under **Integrations**.
+
+Important behavior:
+
+- Keys always start with `bscraper_`
+- The full secret is shown exactly once when you create it
+- You can keep up to 10 active keys per user
+- Revoked keys stay in the list for audit visibility, but they stop working immediately
+
+## Send an authentication header
+
+You can authenticate with either header:
+
+| Header | Example |
+| --- | --- |
+| `Authorization` | `Authorization: Bearer bscraper_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx` |
+| `X-API-Key` | `X-API-Key: bscraper_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx` |
+
+Both methods are equivalent.
+
+## Example request
+
+```bash
+curl https://api.brezel.ai/api/v1/jobs/user \
+  -H "Authorization: Bearer bscraper_your_key_here"
+```
+
+## Session auth vs API keys
+
+- The dashboard uses your signed-in session cookie.
+- API keys are the right choice for backend jobs, scripts, and external automations.
+- The Google OAuth callback endpoint relies on a browser session and is not designed for direct server-to-server calls.
+
+## Rate limits
+
+The API router applies different limits based on the authenticated context:
+
+| Auth context | Sustained rate | Burst |
+| --- | --- | --- |
+| Free API key | `2 req/s` | `5` |
+| Paid API key | `10 req/s` | `30` |
+| Dashboard session | `5 req/s` | `20` |
+
+`POST /api/v1/jobs` has a tighter per-user limiter on top of the global rate limit:
+
+- Sustained rate: `1 req/s`
+- Burst: `3`
+
+## Idempotency for `POST /api/v1/jobs`
+
+Job creation is billable. If your client retries blindly after a timeout, you can create duplicate jobs and duplicate charges.
+
+Send an `Idempotency-Key` header on `POST /api/v1/jobs` to make retries safe:
+
+```bash
+curl -X POST https://api.brezel.ai/api/v1/jobs \
+  -H "Authorization: Bearer bscraper_your_key_here" \
+  -H "Content-Type: application/json" \
+  -H "Idempotency-Key: 5a2c6b7e-3f9d-4f4f-9e1e-1d3b0a8c1c2e" \
+  -d '{
+    "name": "Berlin cafes",
+    "keywords": ["cafes in berlin"],
+    "lang": "en"
+  }'
+```
+
+Current behavior:
+
+- Replay window: 24 hours
+- Same key and same request body: returns the cached response, with `Idempotent-Replayed: true`
+- Same key and different request body: returns `409 Conflict` with `idempotency_key_in_use_with_different_body`
+- Same key while the first request is still running: returns `409 Conflict` with `idempotency_key_in_use` and `Retry-After: 1`
+- Maximum key length: 255 bytes
+
+## Common error shape
+
+Most failures return the same JSON envelope:
+
+```json
+{
+  "code": 401,
+  "message": "User not authenticated"
+}
+```
+
+Common statuses:
+
+- `401` for missing or invalid authentication
+- `400` for validation or query parameter errors
+- `409` for idempotency conflicts
+- `422` for invalid JSON or invalid UUID path values
+- `429` for rate limiting or concurrent job limits

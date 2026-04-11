@@ -1,39 +1,27 @@
 ---
 title: "Cursor setup"
-description: "Configure Cursor for your documentation workflow"
+description: "Contributor workflow for using Cursor on the BrezelScraper docs repo."
 icon: "arrow-pointer"
 ---
 
-Set up Cursor to help you write and maintain your Mintlify documentation.
+<Note>
+  This page is for docs contributors. It is not part of the customer product guide.
+</Note>
 
-## Prerequisites
+Use Cursor when you want fast inline editing with the docs, backend, and frontend open side by side.
 
-- Cursor editor installed
+## Recommended setup
 
-## Setup
+- Open the docs repo root so `docs.json` and `AGENTS.md` are in scope
+- Keep the backend and frontend codebases open when documenting product behavior
+- Install the Mintlify skill if you want component help:
 
-<Steps>
-<Step title="Open your docs directory in Cursor">
-  Open the root of your documentation repository where `docs.json` is located.
-</Step>
+```bash
+npx skills add https://mintlify.com/docs
+```
 
-<Step title="Install the Mintlify skill">
-  In the integrated terminal, run:
+## Working rules
 
-  ```bash
-  npx skills add https://mintlify.com/docs
-  ```
-
-  This gives Cursor Mintlify's component reference, writing standards,
-  and workflow guidance.
-</Step>
-
-<Step title="Customize project instructions">
-  Edit `AGENTS.md` in your project root to add project-specific terminology,
-  style preferences, and content boundaries.
-</Step>
-
-<Step title="Start writing with Cursor">
-  Open a file and use Cursor's AI features to draft and edit documentation.
-</Step>
-</Steps>
+- Verify API payloads against Go handlers and model structs
+- Verify dashboard steps against the frontend before publishing UI instructions
+- Remove or rewrite starter content instead of hiding it

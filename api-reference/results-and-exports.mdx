@@ -1,0 +1,189 @@
+---
+title: "Results and exports"
+description: "Fetch paginated results, download CSV output, inspect job costs, and export completed jobs."
+---
+
+## `GET /api/v1/jobs/{id}/results`
+
+Fetch the rich result payload for a single job.
+
+### Query parameters
+
+| Parameter | Type | Default | Notes |
+| --- | --- | --- | --- |
+| `page` | integer | `1` | Must be positive |
+| `limit` | integer | `50` | Max `100` |
+
+### Example response
+
+```json
+{
+  "results": [
+    {
+      "id": 1,
+      "user_id": "user_123",
+      "job_id": "d8d8a24e-cef2-4b02-8396-abc290b6f299",
+      "title": "Cafe Example",
+      "category": "Cafe",
+      "address": "Example Street 1, Berlin",
+      "website": "https://example.com",
+      "phone": "+49 30 123456",
+      "review_count": 128,
+      "rating": 4.6,
+      "open_hours": {
+        "monday": ["08:00-18:00"]
+      },
+      "images": [],
+      "user_reviews": [],
+      "emails": "hello@example.com",
+      "created_at": "2026-04-10T09:05:00Z"
+    }
+  ],
+  "total_count": 1,
+  "page": 1,
+  "limit": 50,
+  "offset": 0,
+  "total_pages": 1,
+  "has_next": false,
+  "has_prev": false
+}
+```
+
+Useful fields include:
+
+- `title`, `category`, `address`, `website`, `phone`
+- `review_count`, `rating`, `reviews_link`
+- `open_hours`, `popular_times`, `reviews_per_rating`
+- `images`, `reservations`, `order_online`, `menu`, `owner`
+- `user_reviews`, `user_reviews_extended`
+- `emails`
+
+If the job is in `failed` status, this endpoint returns `402 Payment Required` with a billing failure message.
+
+## `GET /api/v1/results`
+
+Fetch a flat result list across all of your jobs.
+
+### Query parameters
+
+| Parameter | Type | Default | Notes |
+| --- | --- | --- | --- |
+| `limit` | integer | `50` | Max `100` |
+| `offset` | integer | `0` | Must be non-negative |
+
+This endpoint returns a plain JSON array of result objects rather than a paginated envelope.
+
+## `GET /api/v1/jobs/{id}/download`
+
+Download the CSV file for a job.
+
+Current behavior:
+
+- Response content type is `text/csv`
+- Response includes `Content-Disposition` with the generated file name
+- Invalid UUID values return `422 Unprocessable Entity`
+- Missing or unavailable CSV output returns `404 Not Found`
+- Failed jobs return `402 Payment Required`
+
+### Example request
+
+```bash
+curl -L "https://api.brezel.ai/api/v1/jobs/YOUR_JOB_ID/download" \
+  -H "Authorization: Bearer bscraper_your_key_here" \
+  -o results.csv
+```
+
+## `GET /api/v1/jobs/{id}/costs`
+
+Read the cost breakdown for one job.
+
+### Example response
+
+```json
+{
+  "job_id": "d8d8a24e-cef2-4b02-8396-abc290b6f299",
+  "items": [
+    {
+      "event_type": "place_scraped",
+      "quantity": 87,
+      "cost_credits": "8.70"
+    }
+  ],
+  "total_credits": "8.70",
+  "total_rounded": 9
+}
+```
+
+## `POST /api/v1/jobs/costs/batch`
+
+Read the cost breakdown for multiple jobs in one request.
+
+### Request body
+
+```json
+{
+  "job_ids": [
+    "d8d8a24e-cef2-4b02-8396-abc290b6f299",
+    "4b454a90-cd30-42a5-8401-1d8ebd911234"
+  ]
+}
+```
+
+Notes:
+
+- Maximum `100` job IDs per request
+- Invalid UUID values return `422 Unprocessable Entity`
+- Jobs you do not own are silently omitted from the `costs` map
+
+### Example response
+
+```json
+{
+  "costs": {
+    "d8d8a24e-cef2-4b02-8396-abc290b6f299": {
+      "job_id": "d8d8a24e-cef2-4b02-8396-abc290b6f299",
+      "items": [
+        {
+          "event_type": "place_scraped",
+          "quantity": 87,
+          "cost_credits": "8.70"
+        }
+      ],
+      "total_credits": "8.70",
+      "total_rounded": 9
+    }
+  }
+}
+```
+
+## `POST /api/v1/jobs/{id}/export/google-sheets`
+
+Export a job's CSV output to Google Sheets.
+
+Prerequisites:
+
+- The job must belong to you
+- Google Sheets must already be connected
+- CSV output must already exist for the job
+
+### Optional request body
+
+```json
+{
+  "name": "Berlin cafes April 2026"
+}
+```
+
+`name` is optional. When provided, the backend sanitizes it and limits it to 100 characters.
+
+### Success response
+
+```json
+{
+  "url": "https://docs.google.com/spreadsheets/d/..."
+}
+```
+
+If Google Sheets is not connected, the endpoint returns `404 Not Found`.
+
+See [Integrations](/api-reference/integrations) for the OAuth flow that enables this export.

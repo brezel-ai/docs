@@ -1,33 +1,74 @@
 ---
-title: 'Introduction'
-description: 'Example section for showcasing API endpoints'
+title: "API overview"
+description: "Understand the BrezelScraper API surface before you automate job creation, results retrieval, exports, and billing."
 ---
 
+BrezelScraper exposes a customer API under `https://api.brezel.ai/api/v1`.
+
 <Note>
-  If you're not looking to build API reference documentation, you can delete
-  this section by removing the api-reference folder.
+  This reference covers the customer-facing API surface. Internal admin routes and the Stripe webhook receiver are intentionally excluded.
 </Note>
 
-## Welcome
+## Base URL
 
-There are two ways to build API documentation: [OpenAPI](https://mintlify.com/docs/api-playground/openapi/setup) and [MDX components](https://mintlify.com/docs/api-playground/mdx/configuration). For the starter kit, we are using the following OpenAPI specification.
+- Production: `https://api.brezel.ai/api/v1`
+- Local development: `http://localhost:8080/api/v1`
 
-<Card
-  title="Plant Store Endpoints"
-  icon="leaf"
-  href="https://github.com/mintlify/starter/blob/main/api-reference/openapi.json"
->
-  View the OpenAPI specification file
-</Card>
+## Choose your authentication mode
 
-## Authentication
+- Browser flows in the dashboard use your signed-in session automatically.
+- Server-to-server automations should use a `bscraper_` API key.
+- Google Sheets OAuth uses the browser session flow, then hands off to the export endpoint once connected.
 
-All API endpoints are authenticated using Bearer tokens and picked up from the specification file.
+## Typical automation flow
+
+1. Create an API key in the dashboard.
+2. Estimate a job with `POST /jobs/estimate`.
+3. Create a job with `POST /jobs`.
+4. Check status with `GET /jobs/{id}` or `GET /jobs/user`.
+5. Fetch results with `GET /jobs/{id}/results` or download CSV.
+6. Review costs, credits, or billing history when you need to reconcile spend.
+
+## Reference pages
+
+<CardGroup cols={2}>
+  <Card title="Authentication" icon="lock" href="/api-reference/authentication">
+    Use API keys, understand rate limits, and make retries safe with idempotency.
+  </Card>
+  <Card title="Jobs" icon="rocket" href="/api-reference/jobs">
+    Estimate, create, list, inspect, cancel, and delete scraping jobs.
+  </Card>
+  <Card title="Results and exports" icon="table" href="/api-reference/results-and-exports">
+    Read paginated results, download CSV files, inspect job costs, and export to Google Sheets.
+  </Card>
+  <Card title="Credits and billing" icon="wallet" href="/api-reference/credits-and-billing">
+    Read balances, fetch billing history, and start credit purchases.
+  </Card>
+  <Card title="Integrations" icon="plug" href="/api-reference/integrations">
+    Connect Google Sheets and understand the integration status endpoints.
+  </Card>
+  <Card title="Support and utility endpoints" icon="circle-info" href="/api-reference/support-and-utility">
+    Submit support requests and read dashboard, version, and health metadata.
+  </Card>
+</CardGroup>
+
+## Response conventions
+
+- Errors use a shared JSON shape:
 
 ```json
-"security": [
-  {
-    "bearerAuth": []
-  }
-]
+{
+  "code": 400,
+  "message": "validation or request error details"
+}
 ```
+
+- Most endpoints return JSON.
+- `GET /jobs/{id}/download` returns `text/csv`.
+- Legacy job objects currently use mixed JSON key casing such as `ID`, `Name`, and `Data`. The job reference pages call this out explicitly so you can parse the live contract correctly.
+
+## Related guides
+
+- [Create your first scraping job](/quickstart)
+- [Manage jobs and results](/guides/jobs-results)
+- [Credits and billing](/guides/credits-billing)
