@@ -3,10 +3,10 @@ title: "Use BrezelScraper with n8n"
 description: "Create jobs, wait for completion, and fetch results from BrezelScraper inside n8n."
 ---
 
-This guide shows the safest production setup for n8n users: call the BrezelScraper API with an API key, then use webhook callbacks only as an optional trigger.
+This guide walks through calling the BrezelScraper API from n8n. It covers job creation, polling for status, and fetching results. Webhooks are covered as an optional add-on.
 
 <Tip>
-  Start with the API-first workflow. It is easier to test, easier to debug, and it relies on documented API responses instead of an unpublished webhook payload contract.
+  Start with the API-first workflow. It is easier to test, easier to debug, and it relies on documented API responses instead of an unpublished webhook payload.
 </Tip>
 
 ## Before you start
@@ -14,33 +14,36 @@ This guide shows the safest production setup for n8n users: call the BrezelScrap
 Make sure you have:
 
 - A BrezelScraper account with credits
-- An API key from **Dashboard** -> **Integrations**
+- An API key from **Dashboard** > **Integrations**
 - An n8n workflow you can edit and activate
 
-## Recommended n8n workflow
+## Workflow overview
 
-The simplest reliable workflow is:
-
-1. Trigger the workflow manually, on a schedule, or from another app.
-2. Use `HTTP Request` to create a BrezelScraper job.
-3. Store the returned job ID.
-4. Wait before checking status.
-5. Use `HTTP Request` to fetch the job until it reaches a terminal status.
-6. When the status is `ok`, fetch results or download the CSV.
+```text
+Trigger --> HTTP Request (create job) --> Wait --> HTTP Request (poll status)
+                                                        |
+                                          +---------+---+----------+
+                                          |         |              |
+                                      completed   running       failed
+                                          |       / pending    / cancelled
+                                          v      v              v
+                                  HTTP Request  loop back     stop or
+                                  (get results) to Wait       handle error
+```
 
 ## Step 1: create an API key
 
-In BrezelScraper, open **Integrations** and create a new API key.
+In BrezelScraper, open **Dashboard** > **Integrations** and create a new API key.
 
-Store the full `bscraper_...` key securely. You will only see it once.
+Copy the full `bscraper_...` token and store it somewhere safe. You will only see it once.
 
-## Step 2: add an n8n HTTP Request node for job creation
+## Step 2: create a job with an HTTP Request node
 
-Create an `HTTP Request` node with these settings:
+Add an `HTTP Request` node with these settings:
 
 - Method: `POST`
 - URL: `https://api.brezelscraper.com/api/v1/jobs`
-- Authentication: generic header auth, or send the header manually
+- Authentication: generic header auth, or add the header manually
 - Header option 1: `Authorization: Bearer bscraper_your_key_here`
 - Header option 2: `X-API-Key: bscraper_your_key_here`
 - Body content type: JSON
@@ -60,7 +63,18 @@ Example request body:
 }
 ```
 
-The success response contains the new job ID:
+| Field | Type | Notes |
+|---|---|---|
+| `name` | string | A label for this job (required) |
+| `keywords` | string[] | 1 to 5 search terms (required) |
+| `lang` | string | Two-letter language code (required) |
+| `depth` | int | Scroll depth, 1--20 (default 10) |
+| `max_results` | int | Cap on results, 1--500 |
+| `reviews_max` | int | Reviews per place, 0--500 |
+| `images_max` | int | Images per place, 0--40000 |
+| `max_time` | int | Timeout in seconds, up to 3600 (default 1800) |
+
+A successful `201 Created` response returns the new job ID:
 
 ```json
 {
@@ -70,13 +84,11 @@ The success response contains the new job ID:
 
 ## Step 3: keep the job ID in your workflow
 
-Store the `id` from the create-job response in a dedicated field such as `jobId`.
-
-That keeps later nodes simple even though BrezelScraper's full job objects currently use legacy mixed-case keys such as `ID` and `Status`.
+Store the `id` from the response in a field such as `jobId` so later nodes can reference it easily.
 
 ## Step 4: wait before polling
 
-Add a `Wait` node after job creation so your workflow does not poll the API continuously.
+Add a `Wait` node after job creation so your workflow does not hit the API in a tight loop. 30 to 60 seconds is a good starting interval for most jobs.
 
 After the wait, call:
 
@@ -84,15 +96,34 @@ After the wait, call:
 GET https://api.brezelscraper.com/api/v1/jobs/{{ $json.jobId }}
 ```
 
-Check the returned `Status` field:
+The response looks like this:
 
-- `pending` or `working`: wait again, then check again
-- `ok`: continue to results
-- `failed` or `cancelled`: stop the workflow or route it to your failure handling path
+```json
+{
+  "ID": "d8d8a24e-cef2-4b02-8396-abc290b6f299",
+  "Name": "Berlin cafes",
+  "Status": "running",
+  "Data": { ... },
+  "result_count": 0,
+  "created_at": "2025-04-10T12:00:00Z"
+}
+```
 
-## Step 5: fetch results when the job is complete
+<Note>
+  Field names in the job response use mixed casing (`Status`, `ID`, `Name` are PascalCase while `result_count` and `created_at` are snake_case). Reference them exactly as shown.
+</Note>
 
-Once the job status is `ok`, fetch the structured results:
+Check the `Status` field and branch accordingly:
+
+- `pending`, `running`, or `aborting`: wait again, then poll again
+- `completed`: continue to results
+- `failed` or `cancelled`: stop the workflow or route to your error handling path
+
+You can also check `result_count` before fetching results. If it is `0`, there is nothing to download.
+
+## Step 5: fetch results
+
+Once the status is `completed`, fetch structured results:
 
 ```text
 GET https://api.brezelscraper.com/api/v1/jobs/{{ $json.jobId }}/results
@@ -100,34 +131,58 @@ GET https://api.brezelscraper.com/api/v1/jobs/{{ $json.jobId }}/results
 
 Use this when you want JSON data inside n8n.
 
-If you want the CSV file instead, call:
+If you want the CSV file instead:
 
 ```text
 GET https://api.brezelscraper.com/api/v1/jobs/{{ $json.jobId }}/download
 ```
 
+## Cancelling a job
+
+To stop a running job from n8n (for example on a timeout), send:
+
+```text
+POST https://api.brezelscraper.com/api/v1/jobs/{{ $json.jobId }}/cancel
+```
+
+The job status will move to `aborting` and then to `cancelled`.
+
 ## Optional: trigger n8n from BrezelScraper webhooks
 
-If you want BrezelScraper to notify n8n, add an n8n `Webhook` node and copy its **Production URL**.
+If you want BrezelScraper to notify n8n when a job finishes, add an n8n `Webhook` node and copy its **Production URL**.
 
 Then in BrezelScraper:
 
-1. Open **Integrations**
-2. Create a webhook configuration
+1. Open **Dashboard** > **Integrations**
+2. Create a webhook
 3. Paste the n8n production webhook URL
 
-Use that webhook call as a trigger only. After n8n receives the call, fetch the job through the BrezelScraper API before you process results.
+Use that webhook only as a trigger. After n8n receives the call, fetch the job through the API before processing results.
 
 <Warning>
-  BrezelScraper does not currently publish a stable customer webhook payload contract. Build your n8n workflow so the webhook starts the workflow, then use the API to read the authoritative job state and result data.
+  BrezelScraper does not publish a stable webhook payload contract yet. Use the webhook to start your workflow, then read job state and results through the API.
 </Warning>
+
+## Error handling
+
+The API returns standard HTTP status codes. Handle these in your n8n workflow with an `IF` node or error branch:
+
+| Code | Meaning | What to do |
+|---|---|---|
+| `201` | Job created | Continue |
+| `200` | Request succeeded (poll, results, download) | Continue |
+| `402` | Insufficient credits | Stop and alert the user |
+| `404` | Job not found or not owned by you | Check the job ID |
+| `422` | Invalid request body | Check field values and types |
+| `429` | Rate limit hit | Wait and retry after the number of seconds in the `Retry-After` header |
+
+Polling too fast is the most common cause of `429` errors. Space your `Wait` nodes at least 10 seconds apart.
 
 ## Good production habits
 
-- Use a unique `Idempotency-Key` header on `POST /api/v1/jobs` if your workflow may retry
-- Avoid tight polling loops because API rate limits still apply
-- Keep the job ID in one field throughout the workflow
-- Handle `failed` and `cancelled` jobs explicitly
+- Add an `Idempotency-Key` header on `POST /api/v1/jobs` if your workflow may retry on failure
+- Handle `failed` and `cancelled` jobs explicitly instead of looping forever
+- Keep the job ID in one field throughout the workflow so every node can reference it
 
 ## Related pages
 
@@ -138,7 +193,6 @@ Use that webhook call as a trigger only. After n8n receives the call, fetch the 
 
 ## Official n8n docs
 
-- [HTTP Request node documentation](https://docs.n8n.io/integrations/builtin/core-nodes/n8n-nodes-base.httprequest/)
-- [Webhook node documentation](https://docs.n8n.io/integrations/builtin/core-nodes/n8n-nodes-base.webhook/)
-- [Wait node documentation](https://docs.n8n.io/integrations/builtin/core-nodes/n8n-nodes-base.wait/)
-- [Webhook credentials](https://docs.n8n.io/integrations/builtin/credentials/webhook/)
+- [HTTP Request node](https://docs.n8n.io/integrations/builtin/core-nodes/n8n-nodes-base.httprequest/)
+- [Webhook node](https://docs.n8n.io/integrations/builtin/core-nodes/n8n-nodes-base.webhook/)
+- [Wait node](https://docs.n8n.io/integrations/builtin/core-nodes/n8n-nodes-base.wait/)
