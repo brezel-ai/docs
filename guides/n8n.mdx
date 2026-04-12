@@ -6,7 +6,7 @@ description: "Create jobs, wait for completion, and fetch results from BrezelScr
 This guide walks through calling the BrezelScraper API from n8n. It covers job creation, polling for status, and fetching results. Webhooks are covered as an optional add-on.
 
 <Tip>
-  Start with the API-first workflow. It is easier to test, easier to debug, and it relies on documented API responses instead of an unpublished webhook payload.
+  Start with the API-first workflow. It is easier to test and easier to debug. Add webhooks later if you want BrezelScraper to notify n8n when jobs finish.
 </Tip>
 
 ## Before you start
@@ -105,7 +105,7 @@ The response looks like this:
   "status": "running",
   "data": { ... },
   "result_count": 0,
-  "created_at": "2025-04-10T12:00:00Z"
+  "created_at": "2026-04-10T12:00:00Z"
 }
 ```
 
@@ -165,8 +165,8 @@ BrezelScraper sends a POST request to your webhook URL when a job reaches a term
   "job_name": "Berlin cafes",
   "status": "completed",
   "result_count": 87,
-  "created_at": "2025-04-10T12:00:00Z",
-  "ended_at": "2025-04-10T12:05:30Z"
+  "created_at": "2026-04-10T12:00:00Z",
+  "ended_at": "2026-04-10T12:05:30Z"
 }
 ```
 

@@ -3,19 +3,13 @@ title: "Jobs"
 description: "Estimate, create, list, inspect, cancel, and delete BrezelScraper jobs."
 ---
 
-<Note>
-  Live job objects currently use mixed JSON key casing. Expect legacy top-level keys such as `ID`, `Name`, `Status`, `Data`, and `Date`, plus tagged keys such as `created_at`, `source`, `result_count`, and `total_cost`.
-
-  Request payloads still send `max_time` in seconds. In job responses, `Data.max_time` is currently serialized as a Go duration integer.
-</Note>
-
 ## Job statuses
 
 | Status | Meaning |
 | --- | --- |
 | `pending` | The job has been accepted and is waiting to run |
-| `working` | The scraper is actively collecting data |
-| `ok` | The job finished successfully |
+| `running` | The scraper is actively collecting data |
+| `completed` | The job finished successfully |
 | `failed` | The job did not complete successfully |
 | `cancelled` | The job was cancelled |
 | `aborting` | Cancellation is in progress |
@@ -93,7 +87,7 @@ Estimate a job before creating it. The request body is the same as `POST /api/v1
 ```json
 {
   "estimate": {
-    "actor_start_cost": 0.007,
+    "setup_cost": 0.007,
     "places_cost": 0.3,
     "contact_details_cost": 0,
     "reviews_cost": 0,
@@ -132,11 +126,10 @@ List your jobs with pagination and sorting.
 {
   "jobs": [
     {
-      "ID": "d8d8a24e-cef2-4b02-8396-abc290b6f299",
-      "UserID": "user_123",
-      "Name": "Berlin cafes",
-      "Status": "ok",
-      "Data": {
+      "id": "d8d8a24e-cef2-4b02-8396-abc290b6f299",
+      "name": "Berlin cafes",
+      "status": "completed",
+      "data": {
         "keywords": ["cafes in berlin"],
         "lang": "en",
         "depth": 5,
@@ -147,7 +140,7 @@ List your jobs with pagination and sorting.
         "max_time": 1800000000000,
         "fast_mode": false
       },
-      "Date": "2026-04-10T09:00:00Z",
+      "date": "2026-04-10T09:00:00Z",
       "created_at": "2026-04-10T09:00:00Z",
       "updated_at": "2026-04-10T09:05:00Z",
       "source": "api",
@@ -173,7 +166,7 @@ Use this endpoint only when you explicitly want the unpaginated list. For most A
 
 Fetch one job by UUID.
 
-- `200 OK` returns the same mixed-case job object shape shown above
+- `200 OK` returns the same job object shape shown above
 - `404 Not Found` if the job does not belong to you or does not exist
 - `422 Unprocessable Entity` if `id` is not a valid UUID
 

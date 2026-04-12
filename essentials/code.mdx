@@ -23,8 +23,7 @@ icon: "code"
 
 ## Important live-contract quirks
 
-- Job objects currently return mixed-case top-level keys such as `ID`, `Name`, and `Data`
-- `Data.max_time` in job responses is serialized as a Go duration integer, not the original seconds input
+- `data.max_time` in job responses is serialized as a Go duration integer, not the original seconds input
 - API key examples should use the `bscraper_` prefix
 
 ## Example request pattern

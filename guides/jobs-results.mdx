@@ -10,8 +10,8 @@ Once a job is running, the job detail page becomes the main place to monitor pro
 | Status | What it means | What you can do |
 | --- | --- | --- |
 | `pending` | The job was created and is waiting to start | Wait for processing to begin |
-| `working` | The scraper is actively collecting data | Monitor progress and leave the page if needed |
-| `ok` | The job completed successfully | Open result tabs or download CSV |
+| `running` | The scraper is actively collecting data | Monitor progress and leave the page if needed |
+| `completed` | The job completed successfully | Open result tabs or download CSV |
 | `failed` | The job did not finish successfully | Review the failure reason and retry with a smaller or simpler run |
 | `aborting` | Cancellation has been requested | Wait for the job to stop |
 | `cancelled` | The run was stopped before completion | Duplicate the setup in a new job if you still need the data |
@@ -43,7 +43,7 @@ If a job is still running, some tabs stay empty until the run finishes.
 
 ## Download your CSV
 
-When a job reaches `ok`, you can download a CSV version of the dataset.
+When a job reaches `completed`, you can download a CSV version of the dataset.
 
 Use CSV download when you want to:
 
@@ -64,7 +64,7 @@ Use **Cancel** when you want to stop more usage. Use **Delete** when you no long
 
 ### The job is still running
 
-Wait until the status changes to `ok`. Result tabs populate after successful completion.
+Wait until the status changes to `completed`. Result tabs populate after successful completion.
 
 ### The job failed
 
