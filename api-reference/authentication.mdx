@@ -30,7 +30,7 @@ Both methods are equivalent.
 ## Example request
 
 ```bash
-curl https://api.brezel.ai/api/v1/jobs/user \
+curl https://api.brezelscraper.com/api/v1/jobs/user \
   -H "Authorization: Bearer bscraper_your_key_here"
 ```
 
@@ -62,7 +62,7 @@ Job creation is billable. If your client retries blindly after a timeout, you ca
 Send an `Idempotency-Key` header on `POST /api/v1/jobs` to make retries safe:
 
 ```bash
-curl -X POST https://api.brezel.ai/api/v1/jobs \
+curl -X POST https://api.brezelscraper.com/api/v1/jobs \
   -H "Authorization: Bearer bscraper_your_key_here" \
   -H "Content-Type: application/json" \
   -H "Idempotency-Key: 5a2c6b7e-3f9d-4f4f-9e1e-1d3b0a8c1c2e" \

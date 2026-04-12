@@ -3,15 +3,15 @@ title: "API overview"
 description: "Understand the BrezelScraper API surface before you automate job creation, results retrieval, exports, and billing."
 ---
 
-BrezelScraper exposes a customer API under `https://api.brezel.ai/api/v1`.
+BrezelScraper exposes a customer API under `https://api.brezelscraper.com/api/v1`.
 
 <Note>
-  This reference covers the customer-facing API surface. Internal admin routes and the Stripe webhook receiver are intentionally excluded.
+  This reference covers the supported customer-facing API surface.
 </Note>
 
 ## Base URL
 
-- Production: `https://api.brezel.ai/api/v1`
+- Production: `https://api.brezelscraper.com/api/v1`
 - Local development: `http://localhost:8080/api/v1`
 
 ## Choose your authentication mode
@@ -47,8 +47,8 @@ BrezelScraper exposes a customer API under `https://api.brezel.ai/api/v1`.
   <Card title="Integrations" icon="plug" href="/api-reference/integrations">
     Connect Google Sheets and understand the integration status endpoints.
   </Card>
-  <Card title="Support and utility endpoints" icon="circle-info" href="/api-reference/support-and-utility">
-    Submit support requests and read dashboard, version, and health metadata.
+  <Card title="Support" icon="life-ring" href="/api-reference/support-and-utility">
+    Submit support requests from an authenticated account.
   </Card>
 </CardGroup>
 

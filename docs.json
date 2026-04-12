@@ -68,12 +68,12 @@
       "anchors": [
         {
           "anchor": "Website",
-          "href": "https://brezel.ai",
+          "href": "https://brezelscraper.com",
           "icon": "globe"
         },
         {
           "anchor": "Pricing",
-          "href": "https://brezel.ai/pricing",
+          "href": "https://brezelscraper.com/pricing",
           "icon": "credit-card"
         }
       ]
@@ -87,13 +87,13 @@
     "links": [
       {
         "label": "Support",
-        "href": "mailto:support@brezel.ai"
+        "href": "mailto:support@brezelscraper.com"
       }
     ],
     "primary": {
       "type": "button",
       "label": "Dashboard",
-      "href": "https://brezel.ai/dashboard"
+      "href": "https://brezelscraper.com/dashboard"
     }
   },
   "contextual": {
