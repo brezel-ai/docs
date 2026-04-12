@@ -17,7 +17,7 @@ For most users, the most reliable pattern is:
 
 1. Create an API key.
 2. Create a job with `POST /api/v1/jobs`.
-3. Check status with `GET /api/v1/jobs/{id}` until the job reaches `ok`, `failed`, or `cancelled`.
+3. Check status with `GET /api/v1/jobs/{id}` until the job reaches `completed`, `failed`, or `cancelled`.
 4. Fetch results with `GET /api/v1/jobs/{id}/results` or download CSV with `GET /api/v1/jobs/{id}/download`.
 
 This works well in n8n, cron jobs, backend workers, and other automation tools because the API response shapes are documented on this site.
@@ -29,7 +29,7 @@ BrezelScraper works with n8n in two main ways:
 - **API-first**: use n8n's `HTTP Request` node to create jobs, poll status, and fetch results
 - **Webhook-triggered fetch**: point a BrezelScraper webhook configuration at an n8n `Webhook` node, then use the incoming call to trigger follow-up API requests
 
-The API-first pattern is the better default because BrezelScraper's customer-facing webhook payload contract is not published yet.
+Both approaches work well. Start with API-first if you want simplicity, or add webhooks if you want BrezelScraper to notify you as soon as a job finishes.
 
 ## API keys
 
@@ -51,11 +51,9 @@ Webhook configurations let you register an HTTPS callback URL in your account.
 
 If you use n8n, register the workflow's **Production URL**, not the test URL.
 
-<Warning>
-  BrezelScraper currently documents webhook configuration endpoints only. Outbound event payloads and delivery semantics are not published as a stable customer contract yet. Treat a webhook call as a trigger, then fetch the authoritative job data through the API.
-</Warning>
+When a job finishes, BrezelScraper sends a signed POST to your webhook URL with the job ID, status, and result count. Your endpoint verifies the signature, then fetches results through the API.
 
-Continue with [Webhooks](/api-reference/webhooks) for the CRUD endpoints.
+Continue with [Webhooks](/api-reference/webhooks) for setup instructions, event types, signature verification, and endpoint management.
 
 ## Next step
 

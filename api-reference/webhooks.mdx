@@ -1,29 +1,222 @@
 ---
 title: "Webhooks"
-description: "Manage webhook configurations for your BrezelScraper account."
+description: "Receive notifications when scraping jobs finish."
 ---
 
-<Warning>
-  This page documents webhook configuration endpoints only. Outbound event payloads and delivery semantics are not published yet, so you should not build against undocumented event contracts.
-</Warning>
+Webhooks let BrezelScraper send an HTTP POST to your server when a job completes, fails, or is cancelled. You register a URL, and BrezelScraper calls it with a small JSON payload every time a job reaches a final state.
 
-## Using webhooks with n8n
+## Quick start
 
-If you use n8n, create an n8n `Webhook` node and register its **Production URL** in BrezelScraper.
+1. Go to **Dashboard > Integrations** and create a webhook.
+2. Paste an HTTPS endpoint URL from your server or automation tool.
+3. Copy the **signing secret** and store it securely. You will only see it once.
+4. Create a scraping job. When the job finishes, BrezelScraper sends a POST to your URL.
+5. Your endpoint receives the event, verifies the signature, and fetches results through the API.
 
-Treat the incoming webhook as a trigger, not as the source of truth for job data. After n8n receives the call, fetch the job or results through the BrezelScraper API.
+## Event types
 
-## `GET /api/v1/webhooks`
+BrezelScraper sends one of three event types:
 
-List webhook configurations for the authenticated user, including revoked entries.
+| Event type | When it fires |
+|---|---|
+| `job.completed` | The job finished successfully. Results are ready. |
+| `job.failed` | The job could not complete. Check `failure_reason` on the job. |
+| `job.cancelled` | The job was cancelled by the user or by a timeout. |
 
-### Example response
+## Payload format
+
+Every webhook delivery is an HTTP POST with a JSON body:
+
+```json
+{
+  "event_type": "job.completed",
+  "job_id": "d8d8a24e-cef2-4b02-8396-abc290b6f299",
+  "job_name": "Berlin cafes",
+  "status": "completed",
+  "result_count": 87,
+  "created_at": "2025-04-10T12:00:00Z",
+  "ended_at": "2025-04-10T12:05:30Z"
+}
+```
+
+| Field | Type | Description |
+|---|---|---|
+| `event_type` | string | One of `job.completed`, `job.failed`, `job.cancelled` |
+| `job_id` | string | The job's UUID. Use this to fetch results from the API. |
+| `job_name` | string | The name you gave the job when you created it. |
+| `status` | string | The job's final status. |
+| `result_count` | integer | Number of places scraped. `0` if the job failed or found nothing. |
+| `created_at` | string | When the job was created (ISO 8601). |
+| `ended_at` | string | When the job reached its final status (ISO 8601). |
+
+The payload contains metadata only. To get the scraped data, call `GET /api/v1/jobs/{job_id}/results` after receiving the webhook.
+
+## Headers
+
+Each delivery includes these headers:
+
+| Header | Example | Purpose |
+|---|---|---|
+| `Content-Type` | `application/json` | Always JSON. |
+| `User-Agent` | `BrezelScraper-Webhook/1.0` | Identifies the sender. |
+| `X-Webhook-Signature` | `sha256=a1b2c3...` | HMAC-SHA256 signature of the request body. |
+| `X-Webhook-ID` | `019d837e-8e1c-...` | Unique ID for this delivery. Use it to deduplicate. |
+| `X-Webhook-Timestamp` | `1712956800` | Unix timestamp (seconds) when the delivery was sent. |
+
+## Verify the signature
+
+Every delivery is signed with your webhook's signing secret. Verify the signature before trusting the payload.
+
+### Node.js
+
+```javascript
+const crypto = require('crypto');
+
+function verifyWebhook(body, secret, signatureHeader) {
+  const expected = 'sha256=' + crypto
+    .createHmac('sha256', secret)
+    .update(body, 'utf8')
+    .digest('hex');
+
+  return crypto.timingSafeEqual(
+    Buffer.from(signatureHeader),
+    Buffer.from(expected)
+  );
+}
+
+// In your handler:
+const isValid = verifyWebhook(rawBody, process.env.WEBHOOK_SECRET, req.headers['x-webhook-signature']);
+if (!isValid) {
+  return res.status(401).send('Invalid signature');
+}
+```
+
+### Python
+
+```python
+import hmac
+import hashlib
+
+def verify_webhook(body: bytes, secret: str, signature_header: str) -> bool:
+    expected = 'sha256=' + hmac.new(
+        secret.encode(), body, hashlib.sha256
+    ).hexdigest()
+    return hmac.compare_digest(signature_header, expected)
+```
+
+### Go
+
+```go
+import (
+    "crypto/hmac"
+    "crypto/sha256"
+    "crypto/subtle"
+    "encoding/hex"
+    "fmt"
+)
+
+func verifyWebhook(body []byte, secret string, signatureHeader string) bool {
+    mac := hmac.New(sha256.New, []byte(secret))
+    mac.Write(body)
+    expected := "sha256=" + hex.EncodeToString(mac.Sum(nil))
+    return subtle.ConstantTimeCompare([]byte(signatureHeader), []byte(expected)) == 1
+}
+```
+
+<Tip>
+  Always use constant-time comparison (`timingSafeEqual` in Node.js, `compare_digest` in Python, `subtle.ConstantTimeCompare` in Go) instead of `===` or `==`. Regular string comparison can leak timing information that helps attackers forge signatures.
+</Tip>
+
+## Replay protection
+
+Check the `X-Webhook-Timestamp` header and reject deliveries older than 5 minutes. This prevents an attacker from capturing a valid delivery and replaying it later.
+
+```javascript
+const timestamp = parseInt(req.headers['x-webhook-timestamp'], 10);
+const age = Math.floor(Date.now() / 1000) - timestamp;
+if (age > 300) {
+  return res.status(401).send('Delivery too old');
+}
+```
+
+## Retries
+
+If your endpoint returns a non-2xx status code or does not respond, BrezelScraper retries the delivery up to 5 times with increasing delays:
+
+| Attempt | Delay |
+|---|---|
+| 1 | Immediate |
+| 2 | ~2 seconds |
+| 3 | ~4 seconds |
+| 4 | ~8 seconds |
+| 5 | ~16 seconds |
+
+After 5 failed attempts, the delivery is marked as failed and not retried again.
+
+Each retry uses the same `X-Webhook-ID`, so you can deduplicate on that header if your endpoint received the same delivery more than once.
+
+## Rate limits
+
+To protect your endpoint and prevent abuse, BrezelScraper limits webhook deliveries to:
+
+- **100 deliveries per hour** per user account
+- **50 deliveries per hour** per destination IP address
+
+If a delivery is rate-limited, it is automatically retried after the limit window resets.
+
+## Requirements and limits
+
+| Setting | Value |
+|---|---|
+| Protocol | HTTPS only |
+| Max active webhooks per account | 10 |
+| Webhook name length | 1 to 100 characters |
+| URL length | Up to 2,048 characters |
+| Response timeout | 10 seconds |
+| Max retry attempts | 5 |
+| Signing algorithm | HMAC-SHA256 |
+
+URLs pointing to private networks, localhost, or cloud metadata endpoints are rejected.
+
+## Manage webhook configurations
+
+### `POST /api/v1/webhooks`
+
+Create a new webhook.
+
+**Request body:**
+
+```json
+{
+  "name": "My webhook",
+  "url": "https://example.com/webhooks/brezel"
+}
+```
+
+**Response** (`201 Created`):
+
+```json
+{
+  "id": "018efdf7-7fe1-7c42-b4e2-123456789abc",
+  "name": "My webhook",
+  "url": "https://example.com/webhooks/brezel",
+  "secret": "fdc7992336902be147a38f36a24876828f4207d5820d430140c9602c04fbd7a5"
+}
+```
+
+The `secret` is your signing key. Store it securely. It is shown only at creation time.
+
+### `GET /api/v1/webhooks`
+
+List all webhook configurations for your account, including revoked ones.
+
+**Response** (`200 OK`):
 
 ```json
 [
   {
     "id": "018efdf7-7fe1-7c42-b4e2-123456789abc",
-    "name": "Production webhook",
+    "name": "My webhook",
     "url": "https://example.com/webhooks/brezel",
     "verified_at": "2026-04-10T09:00:00Z",
     "created_at": "2026-04-10T09:00:00Z",
@@ -32,66 +225,30 @@ List webhook configurations for the authenticated user, including revoked entrie
 ]
 ```
 
-## `POST /api/v1/webhooks`
+`verified_at` is set after the first successful delivery to this webhook.
 
-Create a new webhook configuration.
+### `PATCH /api/v1/webhooks/{id}`
 
-### Request body
-
-```json
-{
-  "name": "Production webhook",
-  "url": "https://example.com/webhooks/brezel"
-}
-```
-
-Rules:
-
-- `name` is required and must be 100 characters or fewer
-- `url` is required and must be 2048 characters or fewer
-- Maximum active webhook configs per user is 10
-- URLs are validated before storage and local or unsafe targets are rejected
-
-### Success response
+Update a webhook's name or URL. Both fields are optional.
 
 ```json
 {
-  "id": "018efdf7-7fe1-7c42-b4e2-123456789abc",
-  "name": "Production webhook",
-  "url": "https://example.com/webhooks/brezel",
-  "secret": "f4d5e6c7..."
+  "name": "Renamed webhook"
 }
 ```
 
-The `secret` is returned exactly once.
+Returns `204 No Content` on success.
 
-## `PATCH /api/v1/webhooks/{id}`
+### `DELETE /api/v1/webhooks/{id}`
 
-Update one webhook configuration.
+Revoke a webhook. Revoked webhooks stop receiving deliveries.
 
-### Request body
+Returns `204 No Content` on success.
 
-```json
-{
-  "name": "Renamed webhook",
-  "url": "https://example.com/webhooks/new-path"
-}
-```
+## Best practices
 
-Both fields are optional. The request is merged into the existing record.
-
-Current behavior:
-
-- Success response is `204 No Content`
-- Invalid UUID values return `400 Bad Request`
-- Unknown or revoked IDs return `404 Not Found`
-
-## `DELETE /api/v1/webhooks/{id}`
-
-Revoke one webhook configuration.
-
-Current behavior:
-
-- Success response is `204 No Content`
-- Invalid UUID values return `400 Bad Request`
-- Unknown or already revoked IDs return `404 Not Found`
+- **Respond quickly.** Return a 200 status code as fast as possible. If you need to do heavy processing, queue the work and respond immediately.
+- **Verify every delivery.** Always check the `X-Webhook-Signature` header before acting on the payload.
+- **Deduplicate.** Use `X-Webhook-ID` to detect and skip duplicate deliveries.
+- **Fetch results from the API.** The webhook payload tells you a job finished. Call `GET /api/v1/jobs/{job_id}/results` to get the actual data.
+- **Handle all event types.** Your endpoint should return 200 for events it does not care about. Returning an error causes unnecessary retries.
