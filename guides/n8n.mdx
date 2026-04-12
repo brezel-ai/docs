@@ -145,19 +145,55 @@ The job status will move to `aborting` and then to `cancelled`.
 
 ## Optional: trigger n8n from BrezelScraper webhooks
 
-If you want BrezelScraper to notify n8n when a job finishes, add an n8n `Webhook` node and copy its **Production URL**.
+Instead of polling, you can have BrezelScraper notify n8n when a job finishes.
 
-Then in BrezelScraper:
+### Set up the webhook
 
-1. Open **Dashboard** > **Integrations**
-2. Create a webhook
-3. Paste the n8n production webhook URL
+1. In n8n, add a `Webhook` node and copy its **Production URL**
+2. In BrezelScraper, open **Dashboard** > **Integrations**
+3. Create a webhook and paste the n8n production URL
+4. Copy the **signing secret** and store it securely (you will only see it once)
 
-Use that webhook only as a trigger. After n8n receives the call, fetch the job through the API before processing results.
+BrezelScraper sends a POST request to your webhook URL when a job reaches a terminal state.
 
-<Warning>
-  BrezelScraper does not publish a stable webhook payload contract yet. Use the webhook to start your workflow, then read job state and results through the API.
-</Warning>
+### Webhook payload
+
+```json
+{
+  "event_type": "job.completed",
+  "job_id": "d8d8a24e-cef2-4b02-8396-abc290b6f299",
+  "job_name": "Berlin cafes",
+  "status": "completed",
+  "result_count": 87,
+  "created_at": "2025-04-10T12:00:00Z",
+  "completed_at": "2025-04-10T12:05:30Z"
+}
+```
+
+Possible `event_type` values: `job.completed`, `job.failed`, `job.cancelled`.
+
+The payload contains metadata only. Fetch results through the API after receiving the webhook.
+
+### Verify the signature
+
+Each delivery includes an `X-Webhook-Signature` header with an HMAC-SHA256 signature of the request body. In your n8n `Code` node:
+
+```javascript
+const crypto = require('crypto');
+const signature = $input.first().headers['x-webhook-signature'];
+const expected = 'sha256=' + crypto
+  .createHmac('sha256', 'your_signing_secret')
+  .update($input.first().body)
+  .digest('hex');
+const valid = crypto.timingSafeEqual(
+  Buffer.from(signature),
+  Buffer.from(expected)
+);
+```
+
+### Delivery and retries
+
+BrezelScraper retries failed deliveries up to 5 times with exponential backoff over approximately 13 minutes. Each delivery has a unique `X-Webhook-ID` header you can use for deduplication. Reject deliveries where `X-Webhook-Timestamp` is older than 5 minutes to prevent replay attacks.
 
 ## Error handling
 
