@@ -104,12 +104,12 @@ Read the cost breakdown for one job.
   "job_id": "d8d8a24e-cef2-4b02-8396-abc290b6f299",
   "items": [
     {
-      "event_type": "job_setup",
+      "event_type": "actor_start",
       "quantity": 1,
       "cost_credits": "0.007000"
     },
     {
-      "event_type": "place_collected",
+      "event_type": "place_scraped",
       "quantity": 400,
       "cost_credits": "1.200000"
     }
@@ -119,7 +119,14 @@ Read the cost breakdown for one job.
 }
 ```
 
-Cost totals reflect the stored billing events for that job, using the pricing rules that were active when those events were recorded.
+Each `event_type` represents a billing line item:
+
+| Event type | Meaning |
+|---|---|
+| `actor_start` | One-time setup fee when the job starts |
+| `place_scraped` | Per-place fee for each result collected |
+
+Cost totals use the pricing rules that were active when the job ran.
 
 ## `POST /api/v1/jobs/costs/batch`
 
@@ -151,12 +158,12 @@ Notes:
       "job_id": "d8d8a24e-cef2-4b02-8396-abc290b6f299",
       "items": [
         {
-          "event_type": "job_setup",
+          "event_type": "actor_start",
           "quantity": 1,
           "cost_credits": "0.007000"
         },
         {
-          "event_type": "place_collected",
+          "event_type": "place_scraped",
           "quantity": 400,
           "cost_credits": "1.200000"
         }

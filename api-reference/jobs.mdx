@@ -87,7 +87,7 @@ Estimate a job before creating it. The request body is the same as `POST /api/v1
 ```json
 {
   "estimate": {
-    "setup_cost": 0.007,
+    "actor_start_cost": 0.007,
     "places_cost": 0.3,
     "contact_details_cost": 0,
     "reviews_cost": 0,
@@ -137,7 +137,7 @@ List your jobs with pagination and sorting.
         "images_max": 0,
         "reviews_max": 0,
         "max_results": 100,
-        "max_time": 1800,
+        "max_time": 1800000000000,
         "fast_mode": false
       },
       "date": "2026-04-10T09:00:00Z",
@@ -163,7 +163,7 @@ List your jobs with pagination and sorting.
 | `id` | string | Job UUID |
 | `name` | string | The name you set when creating the job |
 | `status` | string | Current status (see [Job statuses](#job-statuses)) |
-| `data` | object | The configuration you submitted |
+| `data` | object | The configuration you submitted. Note: `data.max_time` is returned in nanoseconds, not seconds. Divide by 1,000,000,000 to get seconds. |
 | `date` | string | When the job was created (ISO 8601). Same value as `created_at`. |
 | `created_at` | string | When the job was created (ISO 8601) |
 | `updated_at` | string | When the job status last changed (ISO 8601) |
