@@ -137,7 +137,7 @@ List your jobs with pagination and sorting.
         "images_max": 0,
         "reviews_max": 0,
         "max_results": 100,
-        "max_time": 1800000000000,
+        "max_time": 1800,
         "fast_mode": false
       },
       "date": "2026-04-10T09:00:00Z",
@@ -155,6 +155,21 @@ List your jobs with pagination and sorting.
   "has_prev": false
 }
 ```
+
+### Response fields
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `id` | string | Job UUID |
+| `name` | string | The name you set when creating the job |
+| `status` | string | Current status (see [Job statuses](#job-statuses)) |
+| `data` | object | The configuration you submitted |
+| `date` | string | When the job was created (ISO 8601). Same value as `created_at`. |
+| `created_at` | string | When the job was created (ISO 8601) |
+| `updated_at` | string | When the job status last changed (ISO 8601) |
+| `source` | string | `"api"` if created via API key, `"web"` if created from the dashboard |
+| `result_count` | integer | Number of places scraped so far |
+| `total_cost` | string | Credits charged for this job (6-decimal string) |
 
 ## `GET /api/v1/jobs`
 
