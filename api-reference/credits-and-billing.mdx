@@ -114,7 +114,3 @@ Confirm a completed checkout session against the authenticated user.
 ```
 
 Use this after the user returns from Stripe if you want to refresh credits immediately instead of waiting for normal background settlement.
-
-## Internal billing webhook
-
-The backend also exposes `POST /api/v1/billing/webhook` for Stripe. That endpoint is internal to BrezelScraper's billing flow and is not part of the customer integration surface.
