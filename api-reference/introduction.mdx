@@ -3,11 +3,7 @@ title: "API overview"
 description: "Understand the BrezelScraper API surface before you automate job creation, results retrieval, exports, and billing."
 ---
 
-BrezelScraper exposes a customer API under `https://api.brezelscraper.com/api/v1`.
-
-<Note>
-  This reference covers the supported customer-facing API surface.
-</Note>
+BrezelScraper exposes a REST API at `https://api.brezelscraper.com/api/v1`.
 
 ## Base URL
 
@@ -64,7 +60,6 @@ BrezelScraper exposes a customer API under `https://api.brezelscraper.com/api/v1
 
 - Most endpoints return JSON.
 - `GET /jobs/{id}/download` returns `text/csv`.
-- Legacy job objects currently use mixed JSON key casing such as `ID`, `Name`, and `Data`. The job reference pages call this out explicitly so you can parse the live contract correctly.
 
 ## Related guides
 
