@@ -1,0 +1,144 @@
+---
+title: "Use BrezelScraper with n8n"
+description: "Create jobs, wait for completion, and fetch results from BrezelScraper inside n8n."
+---
+
+This guide shows the safest production setup for n8n users: call the BrezelScraper API with an API key, then use webhook callbacks only as an optional trigger.
+
+<Tip>
+  Start with the API-first workflow. It is easier to test, easier to debug, and it relies on documented API responses instead of an unpublished webhook payload contract.
+</Tip>
+
+## Before you start
+
+Make sure you have:
+
+- A BrezelScraper account with credits
+- An API key from **Dashboard** -> **Integrations**
+- An n8n workflow you can edit and activate
+
+## Recommended n8n workflow
+
+The simplest reliable workflow is:
+
+1. Trigger the workflow manually, on a schedule, or from another app.
+2. Use `HTTP Request` to create a BrezelScraper job.
+3. Store the returned job ID.
+4. Wait before checking status.
+5. Use `HTTP Request` to fetch the job until it reaches a terminal status.
+6. When the status is `ok`, fetch results or download the CSV.
+
+## Step 1: create an API key
+
+In BrezelScraper, open **Integrations** and create a new API key.
+
+Store the full `bscraper_...` key securely. You will only see it once.
+
+## Step 2: add an n8n HTTP Request node for job creation
+
+Create an `HTTP Request` node with these settings:
+
+- Method: `POST`
+- URL: `https://api.brezelscraper.com/api/v1/jobs`
+- Authentication: generic header auth, or send the header manually
+- Header option 1: `Authorization: Bearer bscraper_your_key_here`
+- Header option 2: `X-API-Key: bscraper_your_key_here`
+- Body content type: JSON
+
+Example request body:
+
+```json
+{
+  "name": "Berlin cafes",
+  "keywords": ["cafes in berlin"],
+  "lang": "en",
+  "depth": 5,
+  "max_results": 100,
+  "reviews_max": 0,
+  "images_max": 0,
+  "max_time": 1800
+}
+```
+
+The success response contains the new job ID:
+
+```json
+{
+  "id": "d8d8a24e-cef2-4b02-8396-abc290b6f299"
+}
+```
+
+## Step 3: keep the job ID in your workflow
+
+Store the `id` from the create-job response in a dedicated field such as `jobId`.
+
+That keeps later nodes simple even though BrezelScraper's full job objects currently use legacy mixed-case keys such as `ID` and `Status`.
+
+## Step 4: wait before polling
+
+Add a `Wait` node after job creation so your workflow does not poll the API continuously.
+
+After the wait, call:
+
+```text
+GET https://api.brezelscraper.com/api/v1/jobs/{{ $json.jobId }}
+```
+
+Check the returned `Status` field:
+
+- `pending` or `working`: wait again, then check again
+- `ok`: continue to results
+- `failed` or `cancelled`: stop the workflow or route it to your failure handling path
+
+## Step 5: fetch results when the job is complete
+
+Once the job status is `ok`, fetch the structured results:
+
+```text
+GET https://api.brezelscraper.com/api/v1/jobs/{{ $json.jobId }}/results
+```
+
+Use this when you want JSON data inside n8n.
+
+If you want the CSV file instead, call:
+
+```text
+GET https://api.brezelscraper.com/api/v1/jobs/{{ $json.jobId }}/download
+```
+
+## Optional: trigger n8n from BrezelScraper webhooks
+
+If you want BrezelScraper to notify n8n, add an n8n `Webhook` node and copy its **Production URL**.
+
+Then in BrezelScraper:
+
+1. Open **Integrations**
+2. Create a webhook configuration
+3. Paste the n8n production webhook URL
+
+Use that webhook call as a trigger only. After n8n receives the call, fetch the job through the BrezelScraper API before you process results.
+
+<Warning>
+  BrezelScraper does not currently publish a stable customer webhook payload contract. Build your n8n workflow so the webhook starts the workflow, then use the API to read the authoritative job state and result data.
+</Warning>
+
+## Good production habits
+
+- Use a unique `Idempotency-Key` header on `POST /api/v1/jobs` if your workflow may retry
+- Avoid tight polling loops because API rate limits still apply
+- Keep the job ID in one field throughout the workflow
+- Handle `failed` and `cancelled` jobs explicitly
+
+## Related pages
+
+- [Integrations](/api-reference/integrations)
+- [Authentication](/api-reference/authentication)
+- [Jobs](/api-reference/jobs)
+- [Results and exports](/api-reference/results-and-exports)
+
+## Official n8n docs
+
+- [HTTP Request node documentation](https://docs.n8n.io/integrations/builtin/core-nodes/n8n-nodes-base.httprequest/)
+- [Webhook node documentation](https://docs.n8n.io/integrations/builtin/core-nodes/n8n-nodes-base.webhook/)
+- [Wait node documentation](https://docs.n8n.io/integrations/builtin/core-nodes/n8n-nodes-base.wait/)
+- [Webhook credentials](https://docs.n8n.io/integrations/builtin/credentials/webhook/)

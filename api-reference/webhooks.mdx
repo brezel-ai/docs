@@ -7,6 +7,12 @@ description: "Manage webhook configurations for your BrezelScraper account."
   This page documents webhook configuration endpoints only. Outbound event payloads and delivery semantics are not published yet, so you should not build against undocumented event contracts.
 </Warning>
 
+## Using webhooks with n8n
+
+If you use n8n, create an n8n `Webhook` node and register its **Production URL** in BrezelScraper.
+
+Treat the incoming webhook as a trigger, not as the source of truth for job data. After n8n receives the call, fetch the job or results through the BrezelScraper API.
+
 ## `GET /api/v1/webhooks`
 
 List webhook configurations for the authenticated user, including revoked entries.

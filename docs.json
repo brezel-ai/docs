@@ -24,7 +24,8 @@
             "group": "Using BrezelScraper",
             "pages": [
               "guides/jobs-results",
-              "guides/credits-billing"
+              "guides/credits-billing",
+              "guides/n8n"
             ]
           }
         ]
@@ -49,6 +50,7 @@
           {
             "group": "Integrations",
             "pages": [
+              "api-reference/integrations",
               "api-reference/api-keys",
               "api-reference/webhooks"
             ]
