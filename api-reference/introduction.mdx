@@ -18,7 +18,6 @@ BrezelScraper exposes a customer API under `https://api.brezelscraper.com/api/v1
 
 - Browser flows in the dashboard use your signed-in session automatically.
 - Server-to-server automations should use a `bscraper_` API key.
-- Google Sheets OAuth uses the browser session flow, then hands off to the export endpoint once connected.
 
 ## Typical automation flow
 
@@ -39,13 +38,10 @@ BrezelScraper exposes a customer API under `https://api.brezelscraper.com/api/v1
     Estimate, create, list, inspect, cancel, and delete scraping jobs.
   </Card>
   <Card title="Results and exports" icon="table" href="/api-reference/results-and-exports">
-    Read paginated results, download CSV files, inspect job costs, and export to Google Sheets.
+    Read paginated results, download CSV files, and inspect job costs.
   </Card>
   <Card title="Credits and billing" icon="wallet" href="/api-reference/credits-and-billing">
     Read balances, fetch billing history, and start credit purchases.
-  </Card>
-  <Card title="Integrations" icon="plug" href="/api-reference/integrations">
-    Connect Google Sheets and understand the integration status endpoints.
   </Card>
   <Card title="Support" icon="life-ring" href="/api-reference/support-and-utility">
     Submit support requests from an authenticated account.

@@ -50,7 +50,6 @@
             "group": "Integrations",
             "pages": [
               "api-reference/api-keys",
-              "api-reference/integrations",
               "api-reference/webhooks"
             ]
           },

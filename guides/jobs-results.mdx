@@ -1,6 +1,6 @@
 ---
 title: "Manage jobs and results"
-description: "Track job status, review result tabs, download CSVs, and export completed jobs."
+description: "Track job status, review result tabs, and download CSVs from completed jobs."
 ---
 
 Once a job is running, the job detail page becomes the main place to monitor progress and collect data.
@@ -11,7 +11,7 @@ Once a job is running, the job detail page becomes the main place to monitor pro
 | --- | --- | --- |
 | `pending` | The job was created and is waiting to start | Wait for processing to begin |
 | `working` | The scraper is actively collecting data | Monitor progress and leave the page if needed |
-| `ok` | The job completed successfully | Open result tabs, download CSV, or export |
+| `ok` | The job completed successfully | Open result tabs or download CSV |
 | `failed` | The job did not finish successfully | Review the failure reason and retry with a smaller or simpler run |
 | `aborting` | Cancellation has been requested | Wait for the job to stop |
 | `cancelled` | The run was stopped before completion | Duplicate the setup in a new job if you still need the data |
@@ -25,7 +25,6 @@ From **Jobs**, you can:
 - Cancel an active job
 - Delete a job you no longer need
 - Download completed results
-- Export completed results to Google Sheets
 
 ## Review the job detail page
 
@@ -48,22 +47,9 @@ When a job reaches `ok`, you can download a CSV version of the dataset.
 
 Use CSV download when you want to:
 
-- Open the file in spreadsheets locally
+- Open the file locally
 - Import it into your own tooling
 - Keep an archive outside the dashboard
-
-## Export to Google Sheets
-
-BrezelScraper can send a completed job directly to Google Sheets.
-
-Before you export:
-
-1. Open **Integrations** in the dashboard
-2. Connect your Google account
-3. Return to the completed job
-4. Choose **Export to Google Sheets**
-
-You can set the sheet name before the export starts.
 
 ## Cancel vs delete
 
@@ -92,7 +78,7 @@ Cancelled jobs stop before the full dataset is ready. Re-run the search if you s
 
 - Split broad searches into multiple smaller jobs
 - Use naming conventions so you can find runs later
-- Download or export completed jobs you plan to share
+- Download completed jobs you plan to share
 - Review costs on finished jobs before scaling the same setup
 
 ## Next step

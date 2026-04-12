@@ -1,6 +1,6 @@
 ---
 title: "Results and exports"
-description: "Fetch paginated results, download CSV output, inspect job costs, and export completed jobs."
+description: "Fetch paginated results, download CSV output, and inspect job costs."
 ---
 
 ## `GET /api/v1/jobs/{id}/results`
@@ -167,35 +167,3 @@ Notes:
   }
 }
 ```
-
-## `POST /api/v1/jobs/{id}/export/google-sheets`
-
-Export a job's CSV output to Google Sheets.
-
-Prerequisites:
-
-- The job must belong to you
-- Google Sheets must already be connected
-- CSV output must already exist for the job
-
-### Optional request body
-
-```json
-{
-  "name": "Berlin cafes April 2026"
-}
-```
-
-`name` is optional. When provided, the backend sanitizes it and limits it to 100 characters.
-
-### Success response
-
-```json
-{
-  "url": "https://docs.google.com/spreadsheets/d/..."
-}
-```
-
-If Google Sheets is not connected, the endpoint returns `404 Not Found`.
-
-See [Integrations](/api-reference/integrations) for the OAuth flow that enables this export.

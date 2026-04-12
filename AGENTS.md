@@ -22,8 +22,7 @@
 - Use **results** for extracted business data
 - Use **credits** for usage and billing balance
 - Use **dashboard** for the authenticated product area
-- Use **integrations** for Google Sheets, API keys, and webhooks
-- Prefer **Google Sheets export** over vague wording like "sync" unless the product UI says otherwise
+- Use **integrations** for API keys and webhooks
 - Prefer the product name **BrezelScraper** over generic phrases like "the scraper"
 
 ## Style preferences
@@ -40,7 +39,7 @@
 ## Content boundaries
 
 - Focus on user-facing SaaS features that exist in the dashboard or public API
-- Prioritize job creation, results, exports, credits, integrations, and support
+- Prioritize job creation, results, CSV downloads, credits, integrations, and support
 - Do not document internal admin routes or internal-only operations
 - Do not document deployment, infrastructure, or private operational runbooks in customer docs
 - Do not trust the existing OpenAPI examples blindly; verify handlers and frontend usage first
