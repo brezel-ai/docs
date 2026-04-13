@@ -106,7 +106,7 @@ Estimate a job before creating it. The request body is the same as `POST /api/v1
 
 Amounts in estimate responses follow BrezelScraper's active pricing rules at request time.
 
-## `GET /api/v1/jobs/user`
+## `GET /api/v1/jobs`
 
 List your jobs with pagination and sorting.
 
@@ -168,12 +168,6 @@ List your jobs with pagination and sorting.
 | `source` | string | `"api"` if created via API key, `"web"` if created from the dashboard |
 | `result_count` | integer | Number of places scraped so far |
 | `total_cost` | string | Credits charged for this job (6-decimal string) |
-
-## `GET /api/v1/jobs`
-
-Return all jobs for the authenticated user as a single array.
-
-Use this endpoint only when you explicitly want the unpaginated list. For most API clients, `GET /api/v1/jobs/user` is the better default.
 
 ## `GET /api/v1/jobs/{id}`
 
