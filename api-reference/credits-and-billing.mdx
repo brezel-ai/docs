@@ -109,12 +109,6 @@ Confirm a completed checkout session against the authenticated user.
 }
 ```
 
-### Success response
-
-```json
-{
-  "status": "ok"
-}
-```
+Returns `204 No Content` on success.
 
 Use this after the user returns from Stripe if you want to refresh credits immediately instead of waiting for normal background settlement.
