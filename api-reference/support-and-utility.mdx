@@ -1,6 +1,6 @@
 ---
-title: "Support"
-description: "Submit support requests from an authenticated BrezelScraper account."
+title: "Support and utility"
+description: "Submit support requests, check server health, and query version info."
 ---
 
 ## `POST /api/v1/support`
@@ -30,5 +30,34 @@ Rules:
 ```json
 {
   "success": true
+}
+```
+
+## `GET /health`
+
+Returns the server health status. This endpoint does not require authentication.
+
+### Example response
+
+```json
+{
+  "status": "ok",
+  "db": "ok",
+  "version": "dev"
+}
+```
+
+## `GET /api/v1/version`
+
+Returns the build version and environment. Requires authentication.
+
+### Example response
+
+```json
+{
+  "version": "1.0.0",
+  "build_date": "2026-04-13",
+  "git_commit_short": "a472a6e",
+  "environment": "production"
 }
 ```

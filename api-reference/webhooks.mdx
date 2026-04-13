@@ -255,6 +255,8 @@ List all webhook configurations for your account, including revoked ones.
 
 `verified_at` is set after the first successful delivery to this webhook.
 
+This endpoint returns a plain array because each account is limited to 10 webhooks. No pagination is needed.
+
 ### `PATCH /api/v1/webhooks/{id}`
 
 Update a webhook's name or URL. Both fields are optional.

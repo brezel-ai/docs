@@ -25,6 +25,8 @@ List all API keys for the authenticated user, including revoked keys.
 ]
 ```
 
+This endpoint returns a plain array because each account is limited to 10 API keys. No pagination is needed.
+
 ## `POST /api/v1/api-keys`
 
 Create a new API key.

@@ -55,6 +55,10 @@ Useful fields include:
 - `user_reviews`, `user_reviews_extended`
 - `emails`
 
+<Note>
+  The example above is abbreviated. The full response includes additional fields such as `latitude`, `longitude`, `description`, `timezone`, `price_range`, `popular_times`, `reviews_per_rating`, `complete_address`, `about`, `reservations`, `order_online`, `menu`, `owner`, `user_reviews`, and `images` when available. Optional fields are omitted from the response when empty.
+</Note>
+
 If the job is in `failed` status, this endpoint returns `402 Payment Required` with a billing failure message.
 
 ## `GET /api/v1/results`

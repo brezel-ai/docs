@@ -17,6 +17,10 @@ Return the authenticated user's current credit balance.
 }
 ```
 
+<Note>
+  Credit values are returned as decimal strings (e.g., `"25.123456"`) to preserve precision. Parse them as decimals, not as floating-point numbers.
+</Note>
+
 ## `GET /api/v1/credits/history`
 
 Return paginated credit transaction history.
