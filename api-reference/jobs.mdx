@@ -97,9 +97,9 @@ Estimate a job before creating it. The request body is the same as `POST /api/v1
     "estimated_reviews": 0,
     "estimated_images": 0,
     "includes_email_scrape": false,
-    "note": "Estimate based on current pricing rules"
+    "note": "Estimate based on your specified max_results limit. Set max_results and reviews_max to control costs precisely."
   },
-  "current_credit_balance": 25,
+  "current_credit_balance": 24.99,
   "sufficient_balance": true
 }
 ```
@@ -137,10 +137,9 @@ List your jobs with pagination and sorting.
         "images_max": 0,
         "reviews_max": 0,
         "max_results": 100,
-        "max_time": 1800000000000,
+        "max_time": 1800,
         "fast_mode": false
       },
-      "date": "2026-04-10T09:00:00Z",
       "created_at": "2026-04-10T09:00:00Z",
       "updated_at": "2026-04-10T09:05:00Z",
       "source": "api",
@@ -163,8 +162,7 @@ List your jobs with pagination and sorting.
 | `id` | string | Job UUID |
 | `name` | string | The name you set when creating the job |
 | `status` | string | Current status (see [Job statuses](#job-statuses)) |
-| `data` | object | The configuration you submitted. Note: `data.max_time` is returned in nanoseconds, not seconds. Divide by 1,000,000,000 to get seconds. |
-| `date` | string | When the job was created (ISO 8601). Same value as `created_at`. |
+| `data` | object | The configuration you submitted. `data.max_time` is in seconds, matching the request format. |
 | `created_at` | string | When the job was created (ISO 8601) |
 | `updated_at` | string | When the job status last changed (ISO 8601) |
 | `source` | string | `"api"` if created via API key, `"web"` if created from the dashboard |
@@ -202,8 +200,4 @@ Cancel a pending or active job.
 
 Delete a job you own.
 
-Current behavior:
-
-- Success response is `200 OK`
-- The response body is empty
-- Invalid UUID values return `422 Unprocessable Entity`
+Returns `204 No Content` on success. Invalid UUID values return `422 Unprocessable Entity`.
