@@ -66,10 +66,10 @@ Example request body:
 | `name` | string | A label for this job (required) |
 | `keywords` | string[] | 1 to 5 search terms (required) |
 | `lang` | string | Two-letter language code (required) |
-| `depth` | int | Scroll depth, 1--20 (default 10) |
+| `depth` | int | Scroll depth, 1--20 (default 5) |
 | `max_results` | int | Cap on results, 1--500 |
 | `reviews_max` | int | Reviews per place, 0--500 |
-| `images_max` | int | Images per place, 0--40000 |
+| `images_max` | int | Total images across all places, 0--40000 |
 | `max_time` | int | Timeout in seconds, up to 3600 (default 1800) |
 
 A successful `201 Created` response returns the new job ID:
@@ -178,10 +178,14 @@ Each delivery includes an `X-Webhook-Signature` header with an HMAC-SHA256 signa
 
 ```javascript
 const crypto = require('crypto');
-const signature = $input.first().headers['x-webhook-signature'];
-const expected = 'sha256=' + crypto
+const sigHeader = $input.first().headers['x-webhook-signature'];
+const parts = Object.fromEntries(sigHeader.split(',').map(p => p.split('=')));
+const timestamp = parts.t;
+const signature = parts.sha256;
+
+const expected = crypto
   .createHmac('sha256', 'your_signing_secret')
-  .update($input.first().body)
+  .update(timestamp + '.' + $input.first().body)
   .digest('hex');
 const valid = crypto.timingSafeEqual(
   Buffer.from(signature),
@@ -191,7 +195,7 @@ const valid = crypto.timingSafeEqual(
 
 ### Delivery and retries
 
-BrezelScraper retries failed deliveries up to 5 times with exponential backoff over approximately 13 minutes. Each delivery has a unique `X-Webhook-ID` header you can use for deduplication. Reject deliveries where `X-Webhook-Timestamp` is older than 5 minutes to prevent replay attacks.
+BrezelScraper retries failed deliveries up to 5 times with exponential backoff. Each delivery has a unique `X-Webhook-ID` header you can use for deduplication. The timestamp in the signature header is cryptographically signed, so reject deliveries where `t` is more than 5 minutes old.
 
 ## Error handling
 
