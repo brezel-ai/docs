@@ -33,6 +33,47 @@ Rules:
 }
 ```
 
+## `GET /api/v1/dashboard`
+
+Returns summary KPIs and recent jobs for the authenticated user. This is the same data that powers the dashboard homepage.
+
+### Query parameters
+
+| Parameter | Type | Default | Notes |
+|---|---|---|---|
+| `limit` | integer | `5` | Recent jobs to include, max `20` |
+
+### Example response
+
+```json
+{
+  "kpi": {
+    "jobs_today": 3,
+    "places_scraped_total": 1250,
+    "active_jobs": 1
+  },
+  "recent_jobs": [
+    {
+      "id": "d8d8a24e-cef2-4b02-8396-abc290b6f299",
+      "name": "Berlin cafes",
+      "status": "completed",
+      "created_at": "2026-04-10T09:00:00Z",
+      "updated_at": "2026-04-10T09:05:00Z",
+      "source": "api",
+      "result_count": 87,
+      "total_cost": "12.50"
+    }
+  ]
+}
+```
+
+| Field | Description |
+|---|---|
+| `kpi.jobs_today` | Jobs created since midnight UTC |
+| `kpi.places_scraped_total` | Total places scraped across all your jobs |
+| `kpi.active_jobs` | Jobs currently running or pending |
+| `recent_jobs` | Your most recent jobs, sorted by creation time |
+
 ## `GET /health`
 
 Returns the server health status. This endpoint does not require authentication.
