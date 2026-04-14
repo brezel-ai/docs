@@ -78,33 +78,125 @@ curl -X POST https://api.brezelscraper.com/api/v1/jobs \
 - `422 Unprocessable Entity` for invalid JSON
 - `429 Too Many Requests` if you hit the concurrent job limit, with `Retry-After: 60`
 
-## `POST /api/v1/jobs/estimate`
+## `POST /api/v1/jobs/estimates`
 
-Estimate a job before creating it. The request body is the same as `POST /api/v1/jobs`.
+Check how much a scraping job will cost before you create it.
+
+Use this endpoint to show users a price preview in your UI, or to decide programmatically
+whether to proceed with a job based on cost and available credits.
+
+### Why use this endpoint
+
+- You get a cost breakdown before spending any credits.
+- The response includes your current credit balance so you know if you can afford the job.
+- The estimate shows a range (min to max) because Google Maps results vary by location and search term.
+
+### Request body
+
+| Parameter | Type | Required | Default | Description |
+| --- | --- | --- | --- | --- |
+| `keywords` | string[] | Yes | | The search terms for your job. 1 to 5 keywords, each up to 200 characters. More keywords means more places found and higher cost. |
+| `depth` | integer | No | `5` | How far to scroll in Google Maps search results. Higher depth finds more places per keyword. Range: 1 to 20. |
+| `include_emails` | boolean | No | `false` | Whether to extract emails from business websites. Adds a per-place cost. |
+| `max_images` | integer | No | `0` | Total number of images to collect across all places. 0 means skip images. Maximum 40000. |
+| `max_reviews` | integer | No | `0` | Maximum reviews to collect per place. 0 means skip reviews. Maximum 500. |
+| `max_results` | integer | No | *(uses depth)* | Hard cap on total places returned. If omitted, the estimate is based on depth and keyword count. Range: 1 to 500. |
+
+Language is not needed here because it does not affect cost.
+
+### Example request
+
+```json
+{
+  "keywords": ["Cafe Mitte Berlin"],
+  "depth": 5,
+  "include_emails": false,
+  "max_reviews": 0,
+  "max_images": 0
+}
+```
 
 ### Example response
 
 ```json
 {
   "estimate": {
-    "job_start_cost": 0.007,
-    "places_cost": 0.3,
-    "contact_details_cost": 0,
-    "reviews_cost": 0,
-    "images_cost": 0,
-    "total_estimated_cost": 0.307,
-    "estimated_places": 100,
-    "estimated_reviews": 0,
-    "estimated_images": 0,
-    "includes_email_scrape": false,
-    "note": "Estimate based on your specified max_results limit. Set max_results and reviews_max to control costs precisely."
+    "object": "job_estimate",
+    "currency": "credits",
+    "places": 40,
+    "places_min": 20,
+    "places_max": 48,
+    "keyword_count": 1,
+    "places_per_keyword": 40,
+    "total": 0.127,
+    "total_min": 0.067,
+    "total_max": 0.151,
+    "breakdown": {
+      "job_start_cost": 0.007,
+      "places_cost": 0.12,
+      "contact_details_cost": 0,
+      "reviews_cost": 0,
+      "images_cost": 0
+    },
+    "reviews": 0,
+    "images": 0,
+    "includes_emails": false,
+    "unit_prices": {
+      "job_start": 0.007,
+      "place_scraped": 0.003,
+      "contact_details": 0.002,
+      "review": 0.0005,
+      "image": 0.0005
+    },
+    "max_results_provided": false,
+    "description": "Estimated ~40 places for 1 keyword at depth 5 (range: 20 to 48).",
+    "expires_at": 1713110460
   },
-  "current_credit_balance": 24.99,
-  "sufficient_balance": true
+  "balance": {
+    "current": 24.99,
+    "sufficient": true
+  }
 }
 ```
 
-Amounts in estimate responses follow BrezelScraper's active pricing rules at request time.
+### Response fields
+
+**estimate** object containing the cost calculation:
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `object` | string | Always `"job_estimate"`. |
+| `currency` | string | Always `"credits"`. One credit equals one US dollar. |
+| `places` | integer | How many places the job will likely scrape. This is the primary estimate used for pricing. |
+| `places_min` | integer | Conservative lower bound on places. Sparse markets (few results for your search term) may produce this many. |
+| `places_max` | integer | Upper bound on places. Dense markets (many results) may produce this many. |
+| `keyword_count` | integer | Number of keywords in your request. |
+| `places_per_keyword` | integer | Estimated places per keyword based on the depth setting. |
+| `total` | number | Estimated total cost in credits for the primary estimate. |
+| `total_min` | number | Lowest possible cost (based on places_min). |
+| `total_max` | number | Highest possible cost (based on places_max). |
+| `breakdown` | object | Cost broken down by component: `job_start_cost` (flat fee per job), `places_cost`, `contact_details_cost` (emails), `reviews_cost`, `images_cost`. |
+| `reviews` | integer | Estimated total reviews to be collected. |
+| `images` | integer | Estimated total images to be collected. |
+| `includes_emails` | boolean | Whether email extraction was included in the estimate. |
+| `unit_prices` | object | The per-unit prices used for this estimate. Lets you verify the math yourself. |
+| `max_results_provided` | boolean | Whether you set a `max_results` cap. If false, the estimate was based on depth. |
+| `description` | string | A human-readable summary of the estimate. |
+| `expires_at` | integer | Unix timestamp. The estimate is accurate until this time. After that, pricing may have changed. |
+
+**balance** object containing your account state:
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `current` | number | Your current credit balance. |
+| `sufficient` | boolean | Whether you have enough credits to run this job. Uses the conservative lower bound so you are not blocked by an optimistic estimate. |
+
+### Notes
+
+- All costs are in credits. One credit equals one US dollar.
+- The estimate uses your account's active pricing rules at request time.
+- If you set `max_results`, it acts as a hard cap. The estimate will not exceed this number of places even if depth would produce more.
+- The `Cache-Control: no-store` header is set on responses because estimates are ephemeral and should not be cached.
 
 ## `GET /api/v1/jobs`
 
