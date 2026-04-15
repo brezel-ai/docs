@@ -99,7 +99,7 @@ whether to proceed with a job based on cost and available credits.
 | `depth` | integer | No | `5` | How far to scroll in Google Maps search results. Higher depth finds more places per keyword. Range: 1 to 20. |
 | `include_emails` | boolean | No | `false` | Whether to extract emails from business websites. Adds a per-place cost. |
 | `max_images` | integer | No | `0` | Total number of images to collect across all places. 0 means skip images. Maximum 40000. |
-| `max_reviews` | integer | No | `0` | Maximum reviews to collect per place. 0 means skip reviews. Maximum 500. |
+| `max_reviews` | integer | No | *(uses average)* | Maximum reviews to collect per place. 0 means skip reviews. If omitted, the estimate uses a realistic average (~50 per place). Range: 0 to 500. |
 | `max_results` | integer | No | *(uses depth)* | Hard cap on total places returned. If omitted, the estimate is based on depth and keyword count. Range: 1 to 500. |
 
 Language is not needed here because it does not affect cost.
