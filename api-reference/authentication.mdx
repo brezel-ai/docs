@@ -50,10 +50,29 @@ The API router applies different limits based on the authenticated context:
 | Paid API key | `10 req/s` | `30` |
 | Dashboard session | `5 req/s` | `20` |
 
+**Tier resolution.** "Paid" means the account has completed at least one successful Stripe credit purchase (i.e. a non-zero charge that settled). Once paid, you stay on the paid limiter — refunds do not demote you back to free. Free users with promotional or signup-bonus credits stay on the free limiter until their first paid purchase.
+
 `POST /api/v1/jobs` has a tighter per-user limiter on top of the global rate limit:
 
 - Sustained rate: `1 req/s`
 - Burst: `3`
+
+### Rate limit response headers
+
+Every API response carries the current limiter snapshot so your client can pace itself without guessing. Both the modern IETF structured-field form ([draft-ietf-httpapi-ratelimit-headers](https://datatracker.ietf.org/doc/draft-ietf-httpapi-ratelimit-headers/)) and the legacy `X-RateLimit-*` triplet are emitted:
+
+| Header | Meaning |
+| --- | --- |
+| `RateLimit-Policy: api;q=<burst>;w=<window-seconds>` | The active policy. `q` is the burst size; `w` is the time (in seconds) for the bucket to refill from empty back to `q` at the sustained rate. For the paid limiter (`10 req/s`, burst `30`), `w=3`. This is NOT "burst per window" — it is the token-bucket refill horizon. |
+| `RateLimit: api;r=<remaining>;t=<seconds-to-reset>` | Tokens left right now and seconds until the next token is available. |
+| `X-RateLimit-Limit` | Burst size (matches `q=`). |
+| `X-RateLimit-Remaining` | Tokens remaining (matches `r=`). |
+| `X-RateLimit-Reset` | Unix epoch seconds when the bucket refills. |
+| `Retry-After` (429 only) | Seconds the client should wait before retrying. |
+
+On a `429 Too Many Requests` response, the same header set is emitted with `r=0` so clients can confirm "remaining=0" without inference.
+
+**Client guidance.** Back off as soon as `RateLimit r=0`, or on any `429`. Use `Retry-After` as the minimum wait — exponential backoff on top of that handles transient bursts without thundering the limiter the moment the bucket refills.
 
 ## Idempotency for `POST /api/v1/jobs`
 
