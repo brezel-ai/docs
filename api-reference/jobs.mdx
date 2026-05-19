@@ -24,11 +24,11 @@ Create a new scraping job.
 | --- | --- | --- | --- | --- |
 | `name` | string | Yes | none | 1 to 200 characters |
 | `keywords` | string[] | Yes | none | 1 to 5 keywords, each 1 to 200 characters |
-| `lang` | string | Yes | none | 2-character language code |
+| `language` | string | Yes | none | 2-character language code |
 | `depth` | integer | No | `5` | Min `1`, max `20` |
-| `email` | boolean | No | `false` | Enables email scraping from business websites |
-| `images_max` | integer | No | `0` | Total image cap for the whole job, max `40000` |
-| `reviews_max` | integer | No | `0` | Review cap per place, max `500` |
+| `include_emails` | boolean | No | `false` | Enables email scraping from business websites |
+| `max_images` | integer | No | `0` | Image cap **per place**, max `500` |
+| `max_reviews` | integer | No | `0` | Review cap **per place**, max `500` |
 | `max_results` | integer | No | `50` | Place cap for the whole job, max `500` |
 | `lat` | string | No | empty | Latitude for geo-targeted runs |
 | `lon` | string | No | empty | Longitude for geo-targeted runs |
@@ -40,7 +40,7 @@ Create a new scraping job.
 
 There is no unlimited sentinel for cap fields. If you want the maximum allowed value, send the maximum explicitly.
 
-### Supported `lang` values
+### Supported `language` values
 
 `ar`, `bg`, `cs`, `da`, `de`, `el`, `en`, `es`, `et`, `fi`, `fr`, `he`, `hr`, `hu`, `id`, `it`, `ja`, `ko`, `lt`, `lv`, `ms`, `nl`, `no`, `pl`, `pt`, `ro`, `ru`, `sk`, `sl`, `sv`, `th`, `tr`, `uk`, `vi`, `zh`
 
@@ -53,11 +53,11 @@ curl -X POST https://api.brezelscraper.com/api/v1/jobs \
   -d '{
     "name": "Berlin cafes",
     "keywords": ["cafes in berlin"],
-    "lang": "en",
+    "language": "en",
     "depth": 5,
     "max_results": 100,
-    "reviews_max": 0,
-    "images_max": 0,
+    "max_reviews": 0,
+    "max_images": 0,
     "max_time": 1800
   }'
 ```
@@ -98,7 +98,7 @@ whether to proceed with a job based on cost and available credits.
 | `keywords` | string[] | Yes | | The search terms for your job. 1 to 5 keywords, each up to 200 characters. More keywords means more places found and higher cost. |
 | `depth` | integer | No | `5` | How far to scroll in Google Maps search results. Higher depth finds more places per keyword. Range: 1 to 20. |
 | `include_emails` | boolean | No | `false` | Whether to extract emails from business websites. Adds a per-place cost. |
-| `max_images` | integer | No | `0` | Total number of images to collect across all places. 0 means skip images. Maximum 40000. |
+| `max_images` | integer | No | `0` | Number of images to collect **per place**. 0 means skip images. Range: 0 to 500. |
 | `max_reviews` | integer | No | *(uses average)* | Maximum reviews to collect per place. 0 means skip reviews. If omitted, the estimate uses a realistic average (~50 per place). Range: 0 to 500. |
 | `max_results` | integer | No | *(uses depth)* | Hard cap on total places returned. If omitted, the estimate is based on depth and keyword count. Range: 1 to 500. |
 
@@ -178,7 +178,7 @@ Language is not needed here because it does not affect cost.
 | `breakdown` | object | Cost broken down by component: `job_start_cost` (flat fee per job), `places_cost`, `contact_details_cost` (emails), `reviews_cost`, `images_cost`. |
 | `reviews` | integer | Estimated total reviews to be collected. |
 | `images` | integer | Estimated total images to be collected. |
-| `includes_emails` | boolean | Whether email extraction was included in the estimate. |
+| `include_emails` | boolean | Whether email extraction was included in the estimate. |
 | `unit_prices` | object | The per-unit prices used for this estimate. Lets you verify the math yourself. |
 | `max_results_provided` | boolean | Whether you set a `max_results` cap. If false, the estimate was based on depth. |
 | `description` | string | A human-readable summary of the estimate. |
@@ -223,11 +223,11 @@ List your jobs with pagination and sorting.
       "status": "completed",
       "data": {
         "keywords": ["cafes in berlin"],
-        "lang": "en",
+        "language": "en",
         "depth": 5,
-        "email": false,
-        "images_max": 0,
-        "reviews_max": 0,
+        "include_emails": false,
+        "max_images": 0,
+        "max_reviews": 0,
         "max_results": 100,
         "max_time": 1800,
         "fast_mode": false
