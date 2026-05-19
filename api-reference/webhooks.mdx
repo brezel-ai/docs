@@ -169,19 +169,69 @@ The timestamp is cryptographically bound to the signature. Reject deliveries whe
 
 ## Retries
 
-If your endpoint returns a non-2xx status code or does not respond, BrezelScraper retries the delivery up to 5 times with increasing delays:
+If your endpoint returns a non-2xx status code or does not respond, BrezelScraper retries the delivery up to 5 times with exponential backoff and jitter:
 
-| Attempt | Delay |
+- Backoff: roughly `2^attempt` seconds, multiplied by a random jitter factor in `[0.5, 1.5)`
+- Cap: 1 hour between attempts
+
+| Attempt # | Approximate wait before retry |
 |---|---|
-| 1 | Immediate |
-| 2 | ~2 seconds |
-| 3 | ~4 seconds |
-| 4 | ~8 seconds |
-| 5 | ~16 seconds |
+| 1 → 2 | 1–3 seconds |
+| 2 → 3 | 2–6 seconds |
+| 3 → 4 | 4–12 seconds |
+| 4 → 5 | 8–24 seconds |
 
-After 5 failed attempts, the delivery is marked as failed and not retried again.
+After 5 failed attempts the delivery is marked as failed and not retried again.
 
 Each retry uses the same `X-Webhook-ID`, so you can deduplicate on that header if your endpoint received the same delivery more than once.
+
+## Health states and the circuit breaker
+
+Every webhook configuration carries a `health_state`:
+
+| State | Meaning |
+| --- | --- |
+| `healthy` | Default. Deliveries flow normally. |
+| `degraded` | Five consecutive deliveries have failed end-to-end (each after its full retry budget). No behavior change yet — just a signal that something is flapping. |
+| `disabled` | Ten consecutive deliveries have failed. The breaker is open; no new deliveries are attempted until you re-enable. |
+
+Each delivery has its own 5-retry budget with exponential backoff. The breaker counter only increments when a delivery has exhausted that budget — so `disabled` means "10 separate jobs failed end-to-end," not "10 individual HTTP attempts."
+
+A single successful (2xx) delivery anywhere in the streak resets `consecutive_failures` to 0 and restores `health_state` to `healthy`.
+
+### Re-enabling a disabled webhook
+
+To re-enable after fixing your endpoint, `PATCH` the config with `{"reenable": true}`:
+
+```bash
+curl -X PATCH https://api.brezelscraper.com/api/v1/webhooks/{id} \
+  -H "Authorization: Bearer bscraper_your_key_here" \
+  -H "Content-Type: application/json" \
+  -d '{"reenable": true}'
+```
+
+You can mix `reenable` with `name` / `url` in the same request — the re-enable is applied first, so a re-enable failure won't half-apply your metadata change.
+
+### Listing disabled webhooks
+
+`GET /api/v1/webhooks` returns every config you own, including `disabled` ones, so the UI can render a "Re-enable" CTA. Each entry now includes:
+
+```json
+{
+  "health_state": "disabled",
+  "consecutive_failures": 10,
+  "disabled_at": "2026-05-19T17:42:11Z",
+  "disabled_reason": "http_5xx"
+}
+```
+
+`disabled_reason` is one of:
+
+- `http_5xx` — your endpoint returned a 5xx
+- `http_4xx` — your endpoint returned a 4xx
+- `transport_error` — connection refused, TLS error, timeout, etc.
+
+It captures the failure mode that was active when the breaker tripped.
 
 ## Rate limits
 
@@ -259,13 +309,17 @@ This endpoint returns a plain array because each account is limited to 10 webhoo
 
 ### `PATCH /api/v1/webhooks/{id}`
 
-Update a webhook's name or URL. Both fields are optional.
+Update a webhook's name, URL, or re-enable the circuit breaker. All fields are optional.
 
 ```json
 {
-  "name": "Renamed webhook"
+  "name": "Renamed webhook",
+  "url": "https://example.com/new-endpoint",
+  "reenable": true
 }
 ```
+
+`reenable: true` clears any `disabled` state and resets `consecutive_failures` to 0. Sending `reenable: true` on an already-healthy config is a no-op success (the call is idempotent). `reenable: false` is also a no-op — only the delivery worker can disable a config; users only ever re-enable.
 
 Returns `204 No Content` on success.
 
